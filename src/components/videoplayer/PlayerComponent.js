@@ -58,12 +58,13 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     return;
                 }
                 
-                // Check if sources are iframe type (AnimePahe)
+                // Check if sources are iframe type (AnimePahe) or m3u8 (Kaido with Vidstack)
                 const firstSource = response?.sources?.[0];
                 console.log("[PlayerComponent] First source:", firstSource);
+                console.log("[PlayerComponent] Provider:", provider);
                 
-                if (firstSource?.type === 'iframe') {
-                    // For iframe sources, use the Kwik URL directly
+                if (provider === 'animepahe' && firstSource?.type === 'iframe') {
+                    // AnimePahe uses iframe (Kwik player)
                     let iframeUrl = firstSource.url;
                     
                     // Add autoplay parameter to the URL if not already present
@@ -72,10 +73,15 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                         iframeUrl = `${iframeUrl}${separator}autoplay=1`;
                     }
                     
-                    console.log("[PlayerComponent] Using iframe source with autoplay:", iframeUrl);
+                    console.log("[PlayerComponent] Using AnimePahe iframe source with autoplay:", iframeUrl);
                     setSrc({ type: 'iframe', url: iframeUrl });
+                } else if (provider === 'kaido') {
+                    // Kaido uses Vidstack player with proxied m3u8
+                    const m3u8Source = firstSource?.url || firstSource;
+                    console.log("[PlayerComponent] Using Kaido m3u8 with Vidstack (proxied):", m3u8Source);
+                    setSrc(m3u8Source);
                 } else {
-                    // For regular m3u8 sources (old providers)
+                    // For regular m3u8 sources (fallback)
                     const sources = response?.sources?.find(i => i.quality === "default" || i.quality === "auto")?.url || response?.sources?.find(i => i.quality === "1080p")?.url || response?.sources?.find(i => i.type === "hls")?.url;
                     console.log("[PlayerComponent] Using regular source:", sources);
                     setSrc(sources);
@@ -94,36 +100,58 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 setSubtitles(reFormSubtitles?.filter((s) => s.kind !== 'thumbnails'));
                 setThumbnails(reFormSubtitles?.filter((s) => s.kind === 'thumbnails'));
 
-                const skipResponse = await fetch(
-                    `https://api.aniskip.com/v2/skip-times/${data?.idMal}/${parseInt(epNum)}?types[]=ed&types[]=mixed-ed&types[]=mixed-op&types[]=op&types[]=recap&episodeLength=`
-                );
-
-                const skipData = await skipResponse.json();
-                const op = skipData?.results?.find((item) => item.skipType === 'op') || null;
-                const ed = skipData?.results?.find((item) => item.skipType === 'ed') || null;
-                const episodeLength = skipData?.results?.find((item) => item.episodeLength)?.episodeLength || 0;
-
-                const skiptime = [];
-
-                if (op?.interval) {
-                    skiptime.push({
-                        startTime: op.interval.startTime ?? 0,
-                        endTime: op.interval.endTime ?? 0,
-                        text: 'Opening',
-                    });
-                }
-                if (ed?.interval) {
-                    skiptime.push({
-                        startTime: ed.interval.startTime ?? 0,
-                        endTime: ed.interval.endTime ?? 0,
-                        text: 'Ending',
-                    });
+                // Use Kaido's skip times if available, otherwise fall back to AniSkip API
+                let skiptime = [];
+                
+                if (provider === 'kaido' && (response?.intro || response?.outro)) {
+                    console.log("[PlayerComponent] Using Kaido skip times:", { intro: response.intro, outro: response.outro });
+                    
+                    if (response.intro) {
+                        skiptime.push({
+                            startTime: response.intro.start ?? 0,
+                            endTime: response.intro.end ?? 0,
+                            text: 'Opening',
+                        });
+                    }
+                    
+                    if (response.outro) {
+                        skiptime.push({
+                            startTime: response.outro.start ?? 0,
+                            endTime: response.outro.end ?? 0,
+                            text: 'Ending',
+                        });
+                    }
                 } else {
-                    skiptime.push({
-                        startTime: op?.interval?.endTime ?? 0,
-                        endTime: episodeLength,
-                        text: '',
-                    });
+                    // Fall back to AniSkip API for other providers
+                    const skipResponse = await fetch(
+                        `https://api.aniskip.com/v2/skip-times/${data?.idMal}/${parseInt(epNum)}?types[]=ed&types[]=mixed-ed&types[]=mixed-op&types[]=op&types[]=recap&episodeLength=`
+                    );
+
+                    const skipData = await skipResponse.json();
+                    const op = skipData?.results?.find((item) => item.skipType === 'op') || null;
+                    const ed = skipData?.results?.find((item) => item.skipType === 'ed') || null;
+                    const episodeLength = skipData?.results?.find((item) => item.episodeLength)?.episodeLength || 0;
+
+                    if (op?.interval) {
+                        skiptime.push({
+                            startTime: op.interval.startTime ?? 0,
+                            endTime: op.interval.endTime ?? 0,
+                            text: 'Opening',
+                        });
+                    }
+                    if (ed?.interval) {
+                        skiptime.push({
+                            startTime: ed.interval.startTime ?? 0,
+                            endTime: ed.interval.endTime ?? 0,
+                            text: 'Ending',
+                        });
+                    } else {
+                        skiptime.push({
+                            startTime: op?.interval?.endTime ?? 0,
+                            endTime: episodeLength,
+                            text: '',
+                        });
+                    }
                 }
 
                 const episode = {

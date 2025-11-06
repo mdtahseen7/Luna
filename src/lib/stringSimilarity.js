@@ -5,7 +5,9 @@ export function findSimilarTitles(inputTitle, titles) {
   const results = [];
   // Compare inputTitle with each title in the dataset
   titles?.forEach((titleObj) => {
-    const title = cleanTitle(titleObj?.title?.toLowerCase()?.replace(/\([^\)]*\)/g, "").trim());
+    // Support both 'title' (AnimePahe) and 'name' (Kaido) fields
+    const titleText = titleObj?.title || titleObj?.name;
+    const title = cleanTitle(titleText?.toLowerCase()?.replace(/\([^\)]*\)/g, "").trim());
 
     // Calculate similarity score between inputTitle and title
     const similarity = compareTwoStrings(cleanTitle(inputTitle?.toLowerCase()), title);

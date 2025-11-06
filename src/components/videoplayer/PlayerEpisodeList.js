@@ -63,16 +63,32 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
   useEffect(() => {
     const fetchepisodes = async () => {
       try {
-        const response = await getEpisodes(id, data?.status === "RELEASING", false);
+        console.log(`\n========== [PlayerEpisodeList] Fetching episodes for ID: ${id} ==========`);
+        // TEMPORARY: Force refresh to bypass cache and fetch fresh data including Kaido
+        const response = await getEpisodes(id, data?.status === "RELEASING", true);
+        console.log(`[PlayerEpisodeList] Received response:`, response);
+        console.log(`[PlayerEpisodeList] Number of providers:`, response?.length || 0);
+        if (response && response.length > 0) {
+          response.forEach((provider, idx) => {
+            console.log(`[PlayerEpisodeList] Provider ${idx + 1}:`, {
+              providerId: provider.providerId,
+              episodeCount: provider.episodes?.length || (provider.episodes?.sub?.length + provider.episodes?.dub?.length) || 0,
+              hasAnimeSession: !!provider.animeSession,
+              hasAnimeId: !!provider.animeId
+            });
+          });
+        }
         setEpisodeData(response);
         if (response) {
           const { suboptions, dubLength } = ProvidersMap(response);
+          console.log(`[PlayerEpisodeList] ProvidersMap result:`, { suboptions, dubLength });
           setSuboptions(suboptions);
           setDubcount(dubLength);
         }
+        console.log(`========== [PlayerEpisodeList] Complete ==========\n`);
         setloading(false);
       } catch (error) {
-        console.log(error)
+        console.error('[PlayerEpisodeList] Error:', error)
         setloading(false)
       }
     }
@@ -172,11 +188,16 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
                 <span className={styles.episodetypes}>
                   <svg viewBox="0 0 32 32" className="w-5 h-5" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M4.6661 6.66699C4.29791 6.66699 3.99943 6.96547 3.99943 7.33366V24.667C3.99943 25.0352 4.29791 25.3337 4.6661 25.3337H27.3328C27.701 25.3337 27.9994 25.0352 27.9994 24.667V7.33366C27.9994 6.96547 27.701 6.66699 27.3328 6.66699H4.6661ZM8.66667 21.3333C8.29848 21.3333 8 21.0349 8 20.6667V11.3333C8 10.9651 8.29848 10.6667 8.66667 10.6667H14C14.3682 10.6667 14.6667 10.9651 14.6667 11.3333V12.6667C14.6667 13.0349 14.3682 13.3333 14 13.3333H10.8C10.7264 13.3333 10.6667 13.393 10.6667 13.4667V18.5333C10.6667 18.607 10.7264 18.6667 10.8 18.6667H14C14.3682 18.6667 14.6667 18.9651 14.6667 19.3333V20.6667C14.6667 21.0349 14.3682 21.3333 14 21.3333H8.66667ZM18 21.3333C17.6318 21.3333 17.3333 21.0349 17.3333 20.6667V11.3333C17.3333 10.9651 17.6318 10.6667 18 10.6667H23.3333C23.7015 10.6667 24 10.9651 24 11.3333V12.6667C24 13.0349 23.7015 13.3333 23.3333 13.3333H20.1333C20.0597 13.3333 20 13.393 20 13.4667V18.5333C20 18.607 20.0597 18.6667 20.1333 18.6667H23.3333C23.7015 18.6667 24 18.9651 24 19.3333V20.6667C24 21.0349 23.7015 21.3333 23.3333 21.3333H18Z" fill="currentColor"></path></svg>
                   SUB: </span>
-                {episodeData?.map((item, index) => (
-                  <div key={item.providerId} value={item.providerId} className={item.providerId === defaultProvider && subtype === 'sub' ? styles.providerselected : styles.provider} onClick={() => handleProviderChange(item.providerId, "sub")}>
-                    {item.providerId}
-                  </div>
-                ))}
+                {console.log('[PlayerEpisodeList RENDER] episodeData:', episodeData)}
+                {console.log('[PlayerEpisodeList RENDER] episodeData length:', episodeData?.length)}
+                {episodeData?.map((item, index) => {
+                  console.log(`[PlayerEpisodeList RENDER] Provider ${index}:`, item.providerId);
+                  return (
+                    <div key={item.providerId} value={item.providerId} className={item.providerId === defaultProvider && subtype === 'sub' ? styles.providerselected : styles.provider} onClick={() => handleProviderChange(item.providerId, "sub")}>
+                      {item.providerId}
+                    </div>
+                  );
+                })}
               </div>
             )}
             {suboptions?.includes('dub') && (
