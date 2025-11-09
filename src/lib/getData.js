@@ -3,28 +3,38 @@ import { redis } from "@/lib/rediscache";
 
 export async function getRecentEpisodes() {
     try {
-        const res = await fetch(
-            `https://anify.eltik.cc/recent?type=anime&page=1&perPage=20&fields=[id,title,status,format,currentEpisode,coverImage,episodes,totalEpisodes]`
-        );
-        const data = await res.json();
-        const mappedData = data.map((i) => {
-            const episodesData = i?.episodes?.data;
-            const getEpisodes = episodesData ? episodesData.find((x) => x.providerId === "gogoanime") || episodesData[0] : [];
-            const getEpisode = getEpisodes?.episodes?.find(
-                (x) => x.number === i.currentEpisode
-            );
-
-            return {
-                id: i.id,
-                latestEpisode: getEpisode?.id ? getEpisode.id.substring(1) : '',
-                title: i.title,
-                status: i.status,
-                format: i.format,
-                totalEpisodes: i?.totalEpisodes,
-                currentEpisode: i.currentEpisode,
-                coverImage: i.coverImage,
-            };
+        // Using Kaido API's category endpoint for airing/ongoing anime
+        const API_URL = process.env.KAIDO_API_URL || 'https://kenjitsu.vercel.app';
+        
+        const response = await fetch(`${API_URL}/api/kaido/anime/category/airing?page=1`, {
+            next: { revalidate: 300 } // Cache for 5 minutes
         });
+
+        if (!response.ok) {
+            console.error(`[RecentEpisodes] API returned status: ${response.status}`);
+            return [];
+        }
+
+        const result = await response.json();
+        
+        // Map Kaido response to our format
+        const mappedData = result.data?.map((item) => ({
+            id: item.id, // This is the Kaido ID, we'll need to get AniList ID
+            title: {
+                romaji: item.romaji || item.name,
+                english: item.name
+            },
+            status: 'RELEASING', // These are updated anime, so they're releasing
+            format: item.type || 'TV',
+            totalEpisodes: item.totalEpisodes || null,
+            currentEpisode: item.episodes?.sub || item.episodes?.dub || 0,
+            coverImage: {
+                large: item.posterImage,
+                extraLarge: item.posterImage
+            },
+            kaidoId: item.id // Store Kaido ID for reference
+        })) || [];
+
         return mappedData;
     } catch (error) {
         console.error("Error fetching Recent Episodes:", error);

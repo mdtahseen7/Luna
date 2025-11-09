@@ -33,26 +33,17 @@ export async function CombineEpisodeMeta(episodeData, imageData) {
 }
 
 export function ProvidersMap(episodeData, defaultProvider = null, setDefaultProvider = () => { }) {
-  let dProvider = episodeData.filter((i) => i?.consumet === true);
   let suboptions = [];
   let dubLength = 0;
 
-  if (dProvider?.length > 0) {
-    const episodes = dProvider[0].episodes;
-    if (episodes) {
-      suboptions = Object.keys(episodes);
-      dubLength = Math.floor(Math.max(...Object.values(episodes?.dub || []).map(e => e.number)));
-    }
-  }
-
   if (!defaultProvider) {
-    // Prioritize consumet providers, then fall back to any available provider (including animepahe)
-    setDefaultProvider(dProvider[0]?.providerId || episodeData[0]?.providerId);
+    // Set first available provider as default
+    setDefaultProvider(episodeData[0]?.providerId);
   }
   
-  // For non-consumet providers like AnimePahe, default to 'sub' if no options available
-  if (suboptions.length === 0 || (suboptions.length === 1 && suboptions[0] === 'dub')) {
-    suboptions.push('sub');
-  }
+  // For AnimePahe and Kaido, default to 'sub'
+  // Future: detect dub support from provider data
+  suboptions.push('sub');
+  
   return { suboptions, dubLength };
 }

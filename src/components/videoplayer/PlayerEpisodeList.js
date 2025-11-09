@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import styles from '../../styles/PlayerEpisodeList.module.css'
 import { getEpisodes } from "@/actions/episode";
 import { ProvidersMap } from "@/utils/EpisodeFunctions";
+import { getProviderDisplayName } from "@/utils/ProviderNames";
 import { useRouter } from 'next-nprogress-bar';
 import EpImgContent from "../Episodelists/EpImgContent";
 import EpNumList from "../Episodelists/EpNumList";
@@ -194,7 +195,7 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
                   console.log(`[PlayerEpisodeList RENDER] Provider ${index}:`, item.providerId);
                   return (
                     <div key={item.providerId} value={item.providerId} className={item.providerId === defaultProvider && subtype === 'sub' ? styles.providerselected : styles.provider} onClick={() => handleProviderChange(item.providerId, "sub")}>
-                      {item.providerId}
+                      {getProviderDisplayName(item.providerId)}
                     </div>
                   );
                 })}
@@ -207,7 +208,7 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
                   DUB: </span>
                 {episodeData?.map((item, index) => (
                   <div key={item.providerId} value={item.providerId} className={item.providerId === defaultProvider && subtype === 'dub' ? styles.providerselected : styles.provider} onClick={() => handleProviderChange(item.providerId, "dub")}>
-                   {item.providerId}
+                   {getProviderDisplayName(item.providerId)}
                   </div>
                 ))}
               </div>

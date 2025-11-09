@@ -4,6 +4,7 @@ import { Select, SelectItem, Tooltip } from "@nextui-org/react";
 import styles from '../styles/Episodesection.module.css'
 import { getEpisodes } from "@/actions/episode";
 import { ProvidersMap } from "@/utils/EpisodeFunctions";
+import { getProviderDisplayName } from "@/utils/ProviderNames";
 import EpImageList from "./Episodelists/EpImageList";
 import EpNumList from "./Episodelists/EpNumList";
 import EpImgContent from "./Episodelists/EpImgContent";
@@ -212,9 +213,9 @@ function Episodesection({ data, id, progress, setUrl }) {
                       onChange={handleProviderChange}
                       disallowEmptySelection={true}
                     >
-                      {episodeData?.map((item) => (
+                      {episodeData?.map((item, index) => (
                         <SelectItem key={item.providerId} value={item.providerId}>
-                          {item.providerId}
+                          {getProviderDisplayName(item.providerId)}
                         </SelectItem>
                       ))}
                     </Select>
@@ -365,9 +366,9 @@ function Episodesection({ data, id, progress, setUrl }) {
               onChange={handleProviderChange}
               disallowEmptySelection={true}
             >
-              {episodeData?.map((item) => (
+              {episodeData?.map((item, index) => (
                 <SelectItem key={item.providerId} value={item.providerId}>
-                  {item.providerId}
+                  {getProviderDisplayName(item.providerId)}
                 </SelectItem>
               ))}
             </Select>

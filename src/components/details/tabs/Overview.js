@@ -10,6 +10,20 @@ function Overview({data}) {
         setShowFullDescription(!showFullDescription);
     };
 
+    // Extract source citation from description
+    const extractSourceCitation = (description) => {
+        if (!description) return { cleanDescription: '', source: null };
+        
+        const sourceMatch = description.match(/\(Source:\s*([^)]+)\)/i);
+        if (sourceMatch) {
+            const cleanDescription = description.replace(/\s*\(Source:\s*[^)]+\)\s*/gi, '').trim();
+            return { cleanDescription, source: sourceMatch[1] };
+        }
+        return { cleanDescription: description, source: null };
+    };
+
+    const { cleanDescription, source } = extractSourceCitation(data?.description);
+
     const getAiringTime = (airingdate) => {
         const timeDifference = airingdate * 1000 - Date.now();
         const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
@@ -52,7 +66,7 @@ function Overview({data}) {
                                 "text-black font-medium bg-gradient-to-br from-white to-neutral-400",
                             ],
                         }}>
-                            <span className={`${styles.con} !text-white cursor-pointer`} suppressHydrationWarning>EP {data?.nextAiringEpisode?.episode}: {getAiringTime(data?.nextAiringEpisode?.airingAt)}</span>
+                            <span className={`${styles.con} !text-white cursor-pointer`} suppressHydrationWarning>Next Episode (EP {data?.nextAiringEpisode?.episode}) Airs In: {getAiringTime(data?.nextAiringEpisode?.airingAt)}</span>
                         </Tooltip>
                     </div>}
                     <div className={styles.singlecontent}>
@@ -95,15 +109,21 @@ function Overview({data}) {
             <div className={styles.card2}>
                 <h3 className={styles.detailsheading}>Description</h3>
                 <div className={styles.descriptioncontent}>
-                    <p dangerouslySetInnerHTML={{ __html: data?.description }} />
+                    <p dangerouslySetInnerHTML={{ __html: cleanDescription }} />
+                    {source && (
+                        <p className={styles.sourceCitation}>(Source: {source})</p>
+                    )}
                 </div>
                 <div className={styles.descriptioncontentmobile}>
                     <p dangerouslySetInnerHTML={{
                         __html: showFullDescription
-                            ? data?.description
-                            : `${data?.description?.slice(0, 250)}...`
+                            ? cleanDescription
+                            : `${cleanDescription?.slice(0, 250)}...`
                     }} />
-                    {data?.description?.length > 250 && (
+                    {showFullDescription && source && (
+                        <p className={styles.sourceCitation}>(Source: {source})</p>
+                    )}
+                    {cleanDescription?.length > 250 && (
                         <button className={styles.readMoreButton} onClick={toggleDescription}>
                             {showFullDescription ? 'Read Less' : 'Read More'}
                         </button>

@@ -1,33 +1,7 @@
 "use server";
-import { ANIME } from "@consumet/extensions";
 import { CombineEpisodeMeta } from "@/utils/EpisodeFunctions";
 import { redis } from "@/lib/rediscache";
 import { getMappings } from "./mappings";
-
-const gogo = new ANIME.Gogoanime();
-const zoro = new ANIME.Zoro();
-
-export async function fetchGogoEpisodes(id) {
-  try {
-    const data = await gogo.fetchAnimeInfo(id);
-
-    return data?.episodes || [];
-  } catch (error) {
-    console.error("Error fetching gogoanime:", error.message);
-    return [];
-  }
-}
-
-export async function fetchZoroEpisodes(id) {
-  try {
-    const data = await zoro.fetchAnimeInfo(id);
-
-    return data?.episodes || [];
-  } catch (error) {
-    console.error("Error fetching zoro:", error.message);
-    return [];
-  }
-}
 
 export async function fetchAnimePaheEpisodes(session) {
   try {
@@ -132,88 +106,8 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
   }
 
   if (mappings) {
-    // ============================================================
-    // COMMENTED OUT: Old episode fetching logic (Gogoanime & Zoro)
-    // ============================================================
-    /*
-    if (mappings.gogoanime && Object.keys(mappings.gogoanime).length >= 1) {
-      // Fetch sub episodes if available
-      if (
-        mappings?.gogoanime?.uncensored ||
-        mappings?.gogoanime?.sub ||
-        mappings?.gogoanime?.tv
-      ) {
-        subEpisodes = await fetchGogoEpisodes(
-          mappings?.gogoanime?.uncensored ||
-            mappings.gogoanime.sub ||
-            mappings?.gogoanime?.tv
-        );
-      }
-
-      // Fetch dub episodes if available
-      if (mappings?.gogoanime?.dub) {
-        dubEpisodes = await fetchGogoEpisodes(mappings?.gogoanime?.dub);
-      }
-
-      if (subEpisodes?.length > 0 || dubEpisodes?.length > 0) {
-        allepisodes.push({
-          episodes: { sub: subEpisodes, dub: dubEpisodes },
-          providerId: "gogoanime",
-          consumet: true,
-        });
-      }
-    }
-    if (mappings?.zoro && Object.keys(mappings.zoro).length >= 1) {
-      let subEpisodes = [];
-
-      // Fetch sub episodes if available
-      if (
-        mappings?.zoro?.uncensored ||
-        mappings?.zoro?.sub ||
-        mappings?.zoro?.tv
-      ) {
-        subEpisodes = await fetchZoroEpisodes(
-          mappings?.zoro?.uncensored
-            ? mappings?.zoro?.uncensored
-            : mappings.zoro.sub
-        );
-      }
-      if (subEpisodes?.length > 0) {
-        const transformedEpisodes = subEpisodes.map(episode => ({
-          ...episode,
-          id: transformEpisodeId(episode.id)
-        }));
-      
-        allepisodes.push({
-          episodes: transformedEpisodes,
-          providerId: "zoro",
-        });
-      }
-    }
-    */
-    
-    // ============================================================
-    // NEW: AnimePahe and Kaido episode fetching (ACTIVE)
-    // ============================================================
-    // Fetch AnimePahe episodes if session is available
-    if (mappings?.animepahe?.session) {
-      console.log(`[EPISODES] Fetching AnimePahe episodes with session: ${mappings.animepahe.session}`);
-      const animePaheEpisodes = await fetchAnimePaheEpisodes(mappings.animepahe.session);
-      console.log(`[EPISODES] AnimePahe returned ${animePaheEpisodes?.length || 0} episodes`);
-      
-      if (animePaheEpisodes?.length > 0) {
-        allepisodes.push({
-          episodes: animePaheEpisodes,
-          providerId: "animepahe",
-          animeSession: mappings.animepahe.session, // Store anime session for later use
-        });
-        console.log(`[EPISODES] Added AnimePahe to providers`);
-      }
-    } else {
-      console.log(`[EPISODES] No AnimePahe session available`);
-    }
-    
-    // Fetch Kaido episodes if ID is available
+    // Kaido and AnimePahe episode fetching
+    // Fetch Kaido episodes first (Server 1)
     if (mappings?.kaido?.id) {
       console.log(`[EPISODES] Fetching Kaido episodes with ID: ${mappings.kaido.id}`);
       const kaidoEpisodes = await fetchKaidoEpisodes(mappings.kaido.id);
@@ -229,6 +123,24 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
       }
     } else {
       console.log(`[EPISODES] No Kaido ID available`);
+    }
+    
+    // Fetch AnimePahe episodes second (Server 2)
+    if (mappings?.animepahe?.session) {
+      console.log(`[EPISODES] Fetching AnimePahe episodes with session: ${mappings.animepahe.session}`);
+      const animePaheEpisodes = await fetchAnimePaheEpisodes(mappings.animepahe.session);
+      console.log(`[EPISODES] AnimePahe returned ${animePaheEpisodes?.length || 0} episodes`);
+      
+      if (animePaheEpisodes?.length > 0) {
+        allepisodes.push({
+          episodes: animePaheEpisodes,
+          providerId: "animepahe",
+          animeSession: mappings.animepahe.session, // Store anime session for later use
+        });
+        console.log(`[EPISODES] Added AnimePahe to providers`);
+      }
+    } else {
+      console.log(`[EPISODES] No AnimePahe session available`);
     }
     
     console.log(`[EPISODES] Total providers: ${allepisodes.length}`);

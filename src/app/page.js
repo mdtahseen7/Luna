@@ -2,7 +2,7 @@
 import Animecard from '@/components/CardComponent/Animecards'
 import Herosection from '@/components/home/Herosection'
 import Navbarcomponent from '@/components/navbar/Navbar'
-import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist } from '@/lib/Anilistfunctions'
+import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist, UpcomingAnilist } from '@/lib/Anilistfunctions'
 import React from 'react'
 import { MotionDiv } from '@/utils/MotionDiv'
 import VerticalList from '@/components/home/VerticalList'
@@ -16,30 +16,31 @@ async function getHomePage() {
   try {
     let cachedData;
     if (redis) {
-      cachedData = await redis.get(`homepage`);
+      cachedData = await redis.get(`homepage_v2`); // Changed key to force refresh
       if (cachedData) {
         const parsedData = JSON.parse(cachedData);
         if (Object.keys(parsedData).length === 0) { // Check if data is an empty object
-          await redis.del(`homepage`);
+          await redis.del(`homepage_v2`);
           cachedData = null;
         }
       }
     }
     if (cachedData) {
-      const { herodata, populardata, top100data, seasonaldata } = JSON.parse(cachedData);
-      return { herodata, populardata, top100data, seasonaldata };
+      const { herodata, populardata, top100data, seasonaldata, upcomingdata } = JSON.parse(cachedData);
+      return { herodata, populardata, top100data, seasonaldata, upcomingdata };
     } else {
-      const [herodata, populardata, top100data, seasonaldata] = await Promise.all([
+      const [herodata, populardata, top100data, seasonaldata, upcomingdata] = await Promise.all([
         TrendingAnilist(),
         PopularAnilist(),
         Top100Anilist(),
-        SeasonalAnilist()
+        SeasonalAnilist(),
+        UpcomingAnilist()
       ]);
       const cacheTime = 60 * 60 * 2;
       if (redis) {
-        await redis.set(`homepage`, JSON.stringify({ herodata, populardata, top100data, seasonaldata }), "EX", cacheTime);
+        await redis.set(`homepage_v2`, JSON.stringify({ herodata, populardata, top100data, seasonaldata, upcomingdata }), "EX", cacheTime);
       }
-      return { herodata, populardata, top100data, seasonaldata };
+      return { herodata, populardata, top100data, seasonaldata, upcomingdata };
     }
   } catch (error) {
     console.error("Error fetching homepage from anilist: ", error);
@@ -49,7 +50,7 @@ async function getHomePage() {
 
 async function Home() {
   const session = await getAuthSession();
-  const { herodata = [], populardata = [], top100data = [], seasonaldata = [] } = await getHomePage();
+  const { herodata = [], populardata = [], top100data = [], seasonaldata = [], upcomingdata = [] } = await getHomePage();
   // const history = await getWatchHistory();
   // console.log(history)
 
@@ -69,6 +70,10 @@ async function Home() {
         <div
         >
           <Animecard data={herodata} cardid="Trending Now" />
+        </div>
+        <div
+        >
+          <Animecard data={upcomingdata} cardid="Upcoming" />
         </div>
         <div
         >

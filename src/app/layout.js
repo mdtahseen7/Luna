@@ -1,4 +1,4 @@
-import { Inter } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import './globals.css'
 import { NextUiProvider } from "./NextUiProvider";
 // import NextTopLoader from 'nextjs-toploader';
@@ -13,12 +13,16 @@ import Changelogs from '../components/Changelogs';
 import FloatingButton from '@/components/FloatingButton';
 import { AuthProvider } from './SessionProvider';
 
-const inter = Inter({ subsets: ['latin'] })
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+})
 //const myfont = localFont({ src: "../static-fonts/AldotheApache.ttf" })
 
-const APP_NAME = "Airin";
-const APP_DEFAULT_TITLE = "Airin - Watch Anime Online";
-const APP_DESCRIPTION = "Discover a world of anime without interruptions on Airin! Watch your favorite series for free, with no ads to disrupt your viewing experience. Join now and immerse yourself in the captivating stories and vibrant characters that Airin has to offer!";
+const APP_NAME = "Akira";
+const APP_DEFAULT_TITLE = "Akira - Watch Anime Online";
+const APP_DESCRIPTION = "Discover a world of anime without interruptions on Akira! Watch your favorite series for free, with no ads to disrupt your viewing experience. Join now and immerse yourself in the captivating stories and vibrant characters that Akira has to offer!";
 
 export const metadata = {
   metadataBase: new URL('https://aniplaynow.live'),
@@ -48,7 +52,7 @@ export const metadata = {
     'latest dubbed anime',
     'subbed anime streaming',
     'dubbed anime streaming',
-    'Airin latest anime',
+    'Akira latest anime',
   ],
   manifest: "/manifest.json",
   appleWebApp: {
@@ -96,7 +100,7 @@ export default async function RootLayout({ children }) {
         <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
         {/* <script src="https://kit.fontawesome.com/c189d5d7c5.js" crossOrigin="anonymous" async></script> */}
       </head>
-      <body className={inter.className}>
+      <body className={poppins.className}>
         <AuthProvider session={session}>
           <NextUiProvider>
             {children}

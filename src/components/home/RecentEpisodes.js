@@ -66,28 +66,26 @@ function RecentEpisodes({ cardid }) {
                     <svg onClick={scrollRight} xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mb-4"><path d="m9 18 6-6-6-6"></path></svg>
                 </span>
                 <div className={styles.cardcontainer} id={cardid} {...events} ref={containerRef} onScroll={handleScroll}>
-                    {data && data?.map((item) => {
+                    {data && data?.map((item, index) => {
                         const anime = {
-                            id: item.id || '',
-                            coverImage: item?.coverImage || '',
+                            id: item.kaidoId || item.id || '', // Use kaidoId if available
+                            coverImage: item?.coverImage?.large || item?.coverImage?.extraLarge || item?.coverImage || '',
                             title: item.title || '',
                             status: item.status || '',
                             format: item.format || '',
-                            latestEpisode: item?.latestEpisode || '',
+                            latestEpisode: '',
                             totalEpisodes: item?.totalEpisodes || '',
                             currentEpisode: item?.currentEpisode || ''
                         };
-                        const latestEpisode = item?.latestEpisode || '';
+                        
+                        // For Kaido IDs, we can't directly link to AniList info page
+                        // So we just link to the catalog/search with the title
+                        const titleForSearch = anime.title?.romaji || anime.title?.english || anime.title;
+                        
                         return (
-                            latestEpisode!=='' ? (
-                                <Link href={`/anime/watch?id=${anime.id}&host=gogoanime&epid=${encodeURIComponent(latestEpisode)}&ep=${item?.currentEpisode}&type=sub`} key={anime.id}>
-                                    <ItemContent anime={anime} cardid={cardid} />
-                                </Link>
-                            ) : (
-                                <Link href={`/anime/info/${anime.id}`} key={anime.id}>
-                                    <ItemContent anime={anime} cardid={cardid} />
-                                </Link>
-                            )
+                            <Link href={`/anime/catalog?search=${encodeURIComponent(titleForSearch)}`} key={`${anime.id}-${index}`}>
+                                <ItemContent anime={anime} cardid={cardid} />
+                            </Link>
                         );
                     })}
                     {!data?.length && (

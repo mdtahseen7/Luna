@@ -78,6 +78,8 @@
     text-align: left; 
     /* margin-right: 10px; */
     font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
 }
 
 .con{
@@ -101,6 +103,13 @@
     color: white;
     border: none;
     outline: none;
+}
+
+.sourceCitation{
+    font-size: 12px;
+    font-style: italic;
+    color: #888;
+    margin-top: 12px;
 }
 
 @media(max-width:1200px){
