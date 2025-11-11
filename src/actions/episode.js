@@ -72,6 +72,40 @@ export async function fetchKaidoEpisodes(animeId) {
   }
 }
 
+export async function fetchHiAnimeEpisodes(animeId) {
+  try {
+    const API_URL = process.env.KAIDO_API_URL; // Same base URL
+    if (!API_URL || !animeId) {
+      console.log("[HiAnime] API URL not configured or animeId missing");
+      return [];
+    }
+
+    console.log(`[HiAnime] Fetching episodes for anime ID: ${animeId}`);
+    const response = await fetch(`${API_URL}/api/hianime/anime/${animeId}/episodes`);
+    
+    if (!response.ok) {
+      console.error(`[HiAnime] Error fetching episodes: ${response.status} ${response.statusText}`);
+      return [];
+    }
+
+    const result = await response.json();
+    const episodes = result.data || [];
+    console.log(`[HiAnime] Successfully fetched ${episodes.length} episodes`);
+    
+    // Transform HiAnime episode format to match the app's format
+    return episodes.map(ep => ({
+      id: ep.episodeId,         // Episode ID for source fetching
+      number: ep.episodeNumber, // Episode number
+      title: ep.title || ep.romaji || `Episode ${ep.episodeNumber}`, // Episode title
+      episodeId: ep.episodeId,  // Backup ID field
+      animeId: animeId,         // Store anime ID for later use
+    }));
+  } catch (error) {
+    console.error("[HiAnime] Error fetching episodes:", error.message);
+    return [];
+  }
+}
+
 async function fetchEpisodeMeta(id, available = false) {
   try {
     if (available) {
@@ -106,7 +140,8 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
   }
 
   if (mappings) {
-    // Kaido and AnimePahe episode fetching
+    // Fetch episodes in order: Kaido (Server 1), HiAnime (Server 2), AnimePahe (Server 3)
+    
     // Fetch Kaido episodes first (Server 1)
     if (mappings?.kaido?.id) {
       console.log(`[EPISODES] Fetching Kaido episodes with ID: ${mappings.kaido.id}`);
@@ -125,7 +160,25 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
       console.log(`[EPISODES] No Kaido ID available`);
     }
     
-    // Fetch AnimePahe episodes second (Server 2)
+    // Fetch HiAnime episodes second (Server 2)
+    if (mappings?.hianime?.id) {
+      console.log(`[EPISODES] Fetching HiAnime episodes with ID: ${mappings.hianime.id}`);
+      const hiAnimeEpisodes = await fetchHiAnimeEpisodes(mappings.hianime.id);
+      console.log(`[EPISODES] HiAnime returned ${hiAnimeEpisodes?.length || 0} episodes`);
+      
+      if (hiAnimeEpisodes?.length > 0) {
+        allepisodes.push({
+          episodes: hiAnimeEpisodes,
+          providerId: "hianime",
+          animeId: mappings.hianime.id, // Store anime ID for later use
+        });
+        console.log(`[EPISODES] Added HiAnime to providers`);
+      }
+    } else {
+      console.log(`[EPISODES] No HiAnime ID available`);
+    }
+    
+    // Fetch AnimePahe episodes third (Server 3)
     if (mappings?.animepahe?.session) {
       console.log(`[EPISODES] Fetching AnimePahe episodes with session: ${mappings.animepahe.session}`);
       const animePaheEpisodes = await fetchAnimePaheEpisodes(mappings.animepahe.session);

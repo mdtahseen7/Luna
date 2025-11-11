@@ -6,7 +6,7 @@ import { findSimilarTitles } from '@/lib/stringSimilarity';
 export async function getMappings(anilistId) {
     console.log(`\n========== [MAPPINGS] Starting for AniList ID: ${anilistId} ==========`);
     const data = await getInfo(anilistId);
-    let animepaheres, kaidores;
+    let animepaheres, kaidores, hianimeres;
     if (!data) {
         console.log("[MAPPINGS] No anime info found");
         return null;
@@ -20,7 +20,18 @@ export async function getMappings(anilistId) {
     kaidores = await mapKaido(data?.title);
     console.log(`[MAPPINGS] Kaido result:`, kaidores);
     
-    const result = { animepahe: animepaheres, kaido: kaidores, id: data?.id, malId: data?.idMal, title: data?.title.romaji };
+    // HiAnime mapping
+    hianimeres = await mapHiAnime(data?.title);
+    console.log(`[MAPPINGS] HiAnime result:`, hianimeres);
+    
+    const result = { 
+        animepahe: animepaheres, 
+        kaido: kaidores, 
+        hianime: hianimeres,
+        id: data?.id, 
+        malId: data?.idMal, 
+        title: data?.title.romaji 
+    };
     console.log(`[MAPPINGS] Final mappings:`, JSON.stringify(result, null, 2));
     console.log(`========== [MAPPINGS] Complete ==========\n`);
     return result;
@@ -185,6 +196,74 @@ async function mapKaido(title) {
         return null;
     } catch (error) {
         console.error("[Kaido] Error mapping Kaido:", error);
+        return null;
+    }
+}
+
+async function mapHiAnime(title) {
+    try {
+        const API_URL = process.env.KAIDO_API_URL; // Same base URL
+        if (!API_URL) {
+            console.log("[HiAnime] API URL not configured");
+            return null;
+        }
+
+        console.log(`[HiAnime] Attempting to map anime: ${title?.romaji || title?.english}`);
+
+        // Search using multiple title variants
+        const searchQueries = [
+            title?.english,
+            title?.romaji,
+            title?.userPreferred
+        ].filter(Boolean);
+
+        let bestMatch = null;
+        let highestSimilarity = 0;
+
+        for (const query of searchQueries) {
+            try {
+                console.log(`[HiAnime] Searching with query: ${query}`);
+                const response = await fetch(`${API_URL}/api/hianime/anime/search?q=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) {
+                    console.log(`[HiAnime] Search failed with status: ${response.status}`);
+                    continue;
+                }
+                
+                const results = await response.json();
+                console.log(`[HiAnime] Found ${results?.data?.length || 0} results`);
+                
+                if (results?.data && results.data.length > 0) {
+                    // Use string similarity to find the best match
+                    const matches = findSimilarTitles(query, results.data);
+                    if (matches && matches.length > 0) {
+                        const topMatch = matches[0];
+                        console.log(`[HiAnime] Top match: ${topMatch.name} (similarity: ${topMatch.similarity})`);
+                        if (topMatch.similarity > highestSimilarity) {
+                            highestSimilarity = topMatch.similarity;
+                            bestMatch = topMatch;
+                        }
+                    }
+                }
+            } catch (fetchError) {
+                console.error(`[HiAnime] Error searching with query "${query}":`, fetchError.message);
+                continue;
+            }
+        }
+
+        // Return anime ID if we found a good match
+        if (bestMatch && bestMatch.id) {
+            console.log(`[HiAnime] Successfully mapped to ID: ${bestMatch.id}`);
+            return {
+                id: bestMatch.id,
+                name: bestMatch.name || bestMatch.title,
+            };
+        }
+
+        console.log("[HiAnime] No suitable match found");
+        return null;
+    } catch (error) {
+        console.error("[HiAnime] Error mapping HiAnime:", error);
         return null;
     }
 }

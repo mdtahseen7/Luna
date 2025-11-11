@@ -1,7 +1,8 @@
 // Map internal provider IDs to user-friendly display names
 export const PROVIDER_DISPLAY_NAMES = {
   kaido: "Server 1",
-  animepahe: "Server 2",
+  hianime: "Server 2",
+  animepahe: "Server 3",
 };
 
 // Get display name for a provider ID

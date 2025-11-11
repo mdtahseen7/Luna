@@ -58,7 +58,7 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     return;
                 }
                 
-                // Check if sources are iframe type (AnimePahe) or m3u8 (Kaido with Vidstack)
+                // Check if sources are iframe type (AnimePahe) or m3u8 (Kaido/HiAnime/AniZone with Vidstack)
                 const firstSource = response?.sources?.[0];
                 console.log("[PlayerComponent] First source:", firstSource);
                 console.log("[PlayerComponent] Provider:", provider);
@@ -75,10 +75,10 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     
                     console.log("[PlayerComponent] Using AnimePahe iframe source with autoplay:", iframeUrl);
                     setSrc({ type: 'iframe', url: iframeUrl });
-                } else if (provider === 'kaido') {
-                    // Kaido uses Vidstack player with proxied m3u8
+                } else if (provider === 'kaido' || provider === 'hianime') {
+                    // Kaido and HiAnime use Vidstack player with proxied m3u8
                     const m3u8Source = firstSource?.url || firstSource;
-                    console.log("[PlayerComponent] Using Kaido m3u8 with Vidstack (proxied):", m3u8Source);
+                    console.log(`[PlayerComponent] Using ${provider} m3u8 with Vidstack (proxied):`, m3u8Source);
                     setSrc(m3u8Source);
                 } else {
                     // For regular m3u8 sources (fallback)
@@ -100,11 +100,11 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 setSubtitles(reFormSubtitles?.filter((s) => s.kind !== 'thumbnails'));
                 setThumbnails(reFormSubtitles?.filter((s) => s.kind === 'thumbnails'));
 
-                // Use Kaido's skip times if available, otherwise fall back to AniSkip API
+                // Use provider's skip times if available, otherwise fall back to AniSkip API
                 let skiptime = [];
                 
-                if (provider === 'kaido' && (response?.intro || response?.outro)) {
-                    console.log("[PlayerComponent] Using Kaido skip times:", { intro: response.intro, outro: response.outro });
+                if ((provider === 'kaido' || provider === 'hianime') && (response?.intro || response?.outro)) {
+                    console.log(`[PlayerComponent] Using ${provider} skip times:`, { intro: response.intro, outro: response.outro });
                     
                     if (response.intro) {
                         skiptime.push({
