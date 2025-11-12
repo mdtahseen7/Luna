@@ -58,13 +58,13 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     return;
                 }
                 
-                // Check if sources are iframe type (AnimePahe) or m3u8 (Kaido/HiAnime/AniZone with Vidstack)
+                // Check if sources are iframe type (AnimePahe/MegaPlay) or m3u8 (Kaido/HiAnime with Vidstack)
                 const firstSource = response?.sources?.[0];
                 console.log("[PlayerComponent] First source:", firstSource);
                 console.log("[PlayerComponent] Provider:", provider);
                 
-                if (provider === 'animepahe' && firstSource?.type === 'iframe') {
-                    // AnimePahe uses iframe (Kwik player)
+                if ((provider === 'animepahe' || provider === 'megaplay') && firstSource?.type === 'iframe') {
+                    // AnimePahe and MegaPlay use iframe players
                     let iframeUrl = firstSource.url;
                     
                     // Add autoplay parameter to the URL if not already present
@@ -73,7 +73,7 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                         iframeUrl = `${iframeUrl}${separator}autoplay=1`;
                     }
                     
-                    console.log("[PlayerComponent] Using AnimePahe iframe source with autoplay:", iframeUrl);
+                    console.log(`[PlayerComponent] Using ${provider} iframe source with autoplay:`, iframeUrl);
                     setSrc({ type: 'iframe', url: iframeUrl });
                 } else if (provider === 'kaido' || provider === 'hianime') {
                     // Kaido and HiAnime use Vidstack player with proxied m3u8

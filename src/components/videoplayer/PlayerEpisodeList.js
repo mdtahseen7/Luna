@@ -78,6 +78,19 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
               hasAnimeId: !!provider.animeId
             });
           });
+          
+          // Add MegaPlay (Server 4) if HiAnime exists - uses HiAnime's episodes
+          const hiAnimeProvider = response.find(p => p.providerId === 'hianime');
+          if (hiAnimeProvider) {
+            console.log(`[PlayerEpisodeList] Adding MegaPlay using HiAnime episodes`);
+            response.push({
+              providerId: 'megaplay',
+              episodes: hiAnimeProvider.episodes, // Reuse HiAnime episodes
+              animeId: hiAnimeProvider.animeId
+            });
+          } else {
+            console.log(`[PlayerEpisodeList] No HiAnime provider found for MegaPlay`);
+          }
         }
         setEpisodeData(response);
         if (response) {
@@ -89,10 +102,10 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
         console.log(`========== [PlayerEpisodeList] Complete ==========\n`);
         setloading(false);
       } catch (error) {
-        console.error('[PlayerEpisodeList] Error:', error)
-        setloading(false)
+        console.error('[PlayerEpisodeList] Error:', error);
+        setloading(false);
       }
-    }
+    };
     fetchepisodes();
   }, [id]);
 

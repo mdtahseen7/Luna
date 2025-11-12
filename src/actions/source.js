@@ -179,6 +179,48 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
     }
 }
 
+export async function getMegaPlaySources(episodeId) {
+    try {
+        if (!episodeId) {
+            console.log("[MegaPlay] episodeId missing");
+            return null;
+        }
+
+        console.log(`[MegaPlay] Processing HiAnime episodeId: ${episodeId}`);
+        
+        // Extract the number after "episode-" from HiAnime's episodeId
+        // Example: "bleach-thousand-year-blood-war-the-conflict-19322-episode-128444" -> "128444"
+        const episodeMatch = episodeId.match(/episode-(\d+)$/i);
+        
+        if (!episodeMatch || !episodeMatch[1]) {
+            console.error(`[MegaPlay] Could not extract episode number from: ${episodeId}`);
+            return null;
+        }
+        
+        const episodeNumber = episodeMatch[1];
+        console.log(`[MegaPlay] Extracted episode number: ${episodeNumber}`);
+        
+        // Construct MegaPlay iframe URL
+        // Format: https://megaplay.buzz/stream/s-2/{episodeNumber}/sub
+        const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeNumber}/sub`;
+        console.log(`[MegaPlay] Generated iframe URL: ${iframeUrl}`);
+        
+        // Return in iframe format (similar to AnimePahe)
+        return {
+            sources: [{
+                url: iframeUrl,
+                type: 'iframe'
+            }],
+            subtitles: [],
+            tracks: []
+        };
+    } catch (error) {
+        console.error("[MegaPlay] Error generating sources:", error.message);
+        return null;
+    }
+}
+
+
 export async function getAnimeSources(id, provider, epid, epnum, subtype, animeSession = null) {
     try {
         console.log(`[getAnimeSources] Called with provider: ${provider}, animeSession: ${animeSession}, epid: ${epid}`);
@@ -206,6 +248,14 @@ export async function getAnimeSources(id, provider, epid, epnum, subtype, animeS
             console.log(`[getAnimeSources] Calling getHiAnimeSources with epid: ${epid}, subtype: ${subtype}`);
             const data = await getHiAnimeSources(epid, subtype);
             console.log(`[getAnimeSources] getHiAnimeSources returned:`, data);
+            return data;
+        }
+
+        if (provider === "megaplay") {
+            // epid is the HiAnime episode ID (we extract the number from it)
+            console.log(`[getAnimeSources] Calling getMegaPlaySources with epid: ${epid}`);
+            const data = await getMegaPlaySources(epid);
+            console.log(`[getAnimeSources] getMegaPlaySources returned:`, data);
             return data;
         }
 
