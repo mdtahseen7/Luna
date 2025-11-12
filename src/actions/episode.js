@@ -2,25 +2,26 @@
 import { CombineEpisodeMeta } from "@/utils/EpisodeFunctions";
 import { redis } from "@/lib/rediscache";
 import { getMappings } from "./mappings";
+import { logger } from "@/utils/logger";
 
 export async function fetchAnimePaheEpisodes(session) {
   try {
     const API_URL = process.env.ANIMEPAHE_API_URL;
     if (!API_URL || !session) {
-      console.log("[AnimePahe] API URL not configured or session missing");
+      logger.log("[AnimePahe] API URL not configured or session missing");
       return [];
     }
 
-    console.log(`[AnimePahe] Fetching episodes for session: ${session}`);
+    logger.log(`[AnimePahe] Fetching episodes for session: ${session}`);
     const response = await fetch(`${API_URL}/episodes?session=${session}`);
     
     if (!response.ok) {
-      console.error(`[AnimePahe] Error fetching episodes: ${response.status} ${response.statusText}`);
+      logger.error(`[AnimePahe] Error fetching episodes: ${response.status} ${response.statusText}`);
       return [];
     }
 
     const episodes = await response.json();
-    console.log(`[AnimePahe] Successfully fetched ${episodes?.length || 0} episodes`);
+    logger.log(`[AnimePahe] Successfully fetched ${episodes?.length || 0} episodes`);
     
     // Transform AnimePahe episode format to match the app's format
     // IMPORTANT: Store anime session in each episode for later source fetching
@@ -33,7 +34,7 @@ export async function fetchAnimePaheEpisodes(session) {
       animeSession: session,    // Store anime session with each episode!
     }));
   } catch (error) {
-    console.error("[AnimePahe] Error fetching episodes:", error.message);
+    logger.error("[AnimePahe] Error fetching episodes:", error.message);
     return [];
   }
 }
@@ -42,21 +43,21 @@ export async function fetchKaidoEpisodes(animeId) {
   try {
     const API_URL = process.env.KAIDO_API_URL;
     if (!API_URL || !animeId) {
-      console.log("[Kaido] API URL not configured or animeId missing");
+      logger.log("[Kaido] API URL not configured or animeId missing");
       return [];
     }
 
-    console.log(`[Kaido] Fetching episodes for anime ID: ${animeId}`);
+    logger.log(`[Kaido] Fetching episodes for anime ID: ${animeId}`);
     const response = await fetch(`${API_URL}/api/kaido/anime/${animeId}/episodes`);
     
     if (!response.ok) {
-      console.error(`[Kaido] Error fetching episodes: ${response.status} ${response.statusText}`);
+      logger.error(`[Kaido] Error fetching episodes: ${response.status} ${response.statusText}`);
       return [];
     }
 
     const result = await response.json();
     const episodes = result.data || [];
-    console.log(`[Kaido] Successfully fetched ${episodes.length} episodes`);
+    logger.log(`[Kaido] Successfully fetched ${episodes.length} episodes`);
     
     // Transform Kaido episode format to match the app's format
     return episodes.map(ep => ({
@@ -67,7 +68,7 @@ export async function fetchKaidoEpisodes(animeId) {
       animeId: animeId,         // Store anime ID for later use
     }));
   } catch (error) {
-    console.error("[Kaido] Error fetching episodes:", error.message);
+    logger.error("[Kaido] Error fetching episodes:", error.message);
     return [];
   }
 }
@@ -76,21 +77,21 @@ export async function fetchHiAnimeEpisodes(animeId) {
   try {
     const API_URL = process.env.KAIDO_API_URL; // Same base URL
     if (!API_URL || !animeId) {
-      console.log("[HiAnime] API URL not configured or animeId missing");
+      logger.log("[HiAnime] API URL not configured or animeId missing");
       return [];
     }
 
-    console.log(`[HiAnime] Fetching episodes for anime ID: ${animeId}`);
+    logger.log(`[HiAnime] Fetching episodes for anime ID: ${animeId}`);
     const response = await fetch(`${API_URL}/api/hianime/anime/${animeId}/episodes`);
     
     if (!response.ok) {
-      console.error(`[HiAnime] Error fetching episodes: ${response.status} ${response.statusText}`);
+      logger.error(`[HiAnime] Error fetching episodes: ${response.status} ${response.statusText}`);
       return [];
     }
 
     const result = await response.json();
     const episodes = result.data || [];
-    console.log(`[HiAnime] Successfully fetched ${episodes.length} episodes`);
+    logger.log(`[HiAnime] Successfully fetched ${episodes.length} episodes`);
     
     // Transform HiAnime episode format to match the app's format
     return episodes.map(ep => ({
@@ -101,7 +102,7 @@ export async function fetchHiAnimeEpisodes(animeId) {
       animeId: animeId,         // Store anime ID for later use
     }));
   } catch (error) {
-    console.error("[HiAnime] Error fetching episodes:", error.message);
+    logger.error("[HiAnime] Error fetching episodes:", error.message);
     return [];
   }
 }
@@ -122,13 +123,13 @@ const data = await res.json()
     }
     return episodesArray;
   } catch (error) {
-    console.error("Error fetching and processing meta:", error.message);
+    logger.error("Error fetching and processing meta:", error.message);
     return [];
   }
 }
 
 const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
-  console.log(`\n========== [EPISODES] Fetching for AniList ID: ${id} ==========`);
+  logger.log(`\n========== [EPISODES] Fetching for AniList ID: ${id} ==========`);
   let mappings;
   let subEpisodes = [];
   let dubEpisodes = [];
@@ -136,75 +137,108 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
 
   if (id) {
     mappings = await getMappings(id);
-    console.log(`[EPISODES] Mappings received:`, mappings);
+    logger.log(`[EPISODES] Mappings received:`, mappings);
   }
 
   if (mappings) {
-    // Fetch episodes in order: Kaido (Server 1), HiAnime (Server 2), AnimePahe (Server 3)
+    // Fetch episodes in parallel for better performance
+    logger.log(`[EPISODES] Starting parallel fetch for all providers`);
     
-    // Fetch Kaido episodes first (Server 1)
+    const fetchPromises = [];
+    
+    // Prepare Kaido fetch (Server 1)
     if (mappings?.kaido?.id) {
-      console.log(`[EPISODES] Fetching Kaido episodes with ID: ${mappings.kaido.id}`);
-      const kaidoEpisodes = await fetchKaidoEpisodes(mappings.kaido.id);
-      console.log(`[EPISODES] Kaido returned ${kaidoEpisodes?.length || 0} episodes`);
-      
-      if (kaidoEpisodes?.length > 0) {
-        allepisodes.push({
-          episodes: kaidoEpisodes,
-          providerId: "kaido",
-          animeId: mappings.kaido.id, // Store anime ID for later use
-        });
-        console.log(`[EPISODES] Added Kaido to providers`);
-      }
-    } else {
-      console.log(`[EPISODES] No Kaido ID available`);
+      logger.log(`[EPISODES] Queuing Kaido episodes with ID: ${mappings.kaido.id}`);
+      fetchPromises.push(
+        fetchKaidoEpisodes(mappings.kaido.id)
+          .then(episodes => ({
+            type: 'kaido',
+            episodes,
+            id: mappings.kaido.id
+          }))
+          .catch(err => {
+            logger.error(`[EPISODES] Kaido fetch failed:`, err);
+            return { type: 'kaido', episodes: [], id: null };
+          })
+      );
     }
     
-    // Fetch HiAnime episodes second (Server 2)
+    // Prepare HiAnime fetch (Server 2)
     if (mappings?.hianime?.id) {
-      console.log(`[EPISODES] Fetching HiAnime episodes with ID: ${mappings.hianime.id}`);
-      const hiAnimeEpisodes = await fetchHiAnimeEpisodes(mappings.hianime.id);
-      console.log(`[EPISODES] HiAnime returned ${hiAnimeEpisodes?.length || 0} episodes`);
-      
-      if (hiAnimeEpisodes?.length > 0) {
-        allepisodes.push({
-          episodes: hiAnimeEpisodes,
-          providerId: "hianime",
-          animeId: mappings.hianime.id, // Store anime ID for later use
-        });
-        console.log(`[EPISODES] Added HiAnime to providers`);
-      }
-    } else {
-      console.log(`[EPISODES] No HiAnime ID available`);
+      logger.log(`[EPISODES] Queuing HiAnime episodes with ID: ${mappings.hianime.id}`);
+      fetchPromises.push(
+        fetchHiAnimeEpisodes(mappings.hianime.id)
+          .then(episodes => ({
+            type: 'hianime',
+            episodes,
+            id: mappings.hianime.id
+          }))
+          .catch(err => {
+            logger.error(`[EPISODES] HiAnime fetch failed:`, err);
+            return { type: 'hianime', episodes: [], id: null };
+          })
+      );
     }
     
-    // Fetch AnimePahe episodes third (Server 3)
+    // Prepare AnimePahe fetch (Server 3)
     if (mappings?.animepahe?.session) {
-      console.log(`[EPISODES] Fetching AnimePahe episodes with session: ${mappings.animepahe.session}`);
-      const animePaheEpisodes = await fetchAnimePaheEpisodes(mappings.animepahe.session);
-      console.log(`[EPISODES] AnimePahe returned ${animePaheEpisodes?.length || 0} episodes`);
-      
-      if (animePaheEpisodes?.length > 0) {
-        allepisodes.push({
-          episodes: animePaheEpisodes,
-          providerId: "animepahe",
-          animeSession: mappings.animepahe.session, // Store anime session for later use
-        });
-        console.log(`[EPISODES] Added AnimePahe to providers`);
-      }
-    } else {
-      console.log(`[EPISODES] No AnimePahe session available`);
+      logger.log(`[EPISODES] Queuing AnimePahe episodes with session: ${mappings.animepahe.session}`);
+      fetchPromises.push(
+        fetchAnimePaheEpisodes(mappings.animepahe.session)
+          .then(episodes => ({
+            type: 'animepahe',
+            episodes,
+            session: mappings.animepahe.session
+          }))
+          .catch(err => {
+            logger.error(`[EPISODES] AnimePahe fetch failed:`, err);
+            return { type: 'animepahe', episodes: [], session: null };
+          })
+      );
     }
     
-    console.log(`[EPISODES] Total providers: ${allepisodes.length}`);
-    console.log(`[EPISODES] Provider IDs:`, allepisodes.map(p => p.providerId));
+    // Execute all fetches in parallel
+    logger.log(`[EPISODES] Executing ${fetchPromises.length} parallel fetches`);
+    const results = await Promise.all(fetchPromises);
+    logger.log(`[EPISODES] All fetches complete`);
+    
+    // Process results and add to allepisodes
+    results.forEach(result => {
+      if (result.episodes?.length > 0) {
+        if (result.type === 'kaido') {
+          allepisodes.push({
+            episodes: result.episodes,
+            providerId: "kaido",
+            animeId: result.id,
+          });
+          logger.log(`[EPISODES] Added Kaido with ${result.episodes.length} episodes`);
+        } else if (result.type === 'hianime') {
+          allepisodes.push({
+            episodes: result.episodes,
+            providerId: "hianime",
+            animeId: result.id,
+          });
+          logger.log(`[EPISODES] Added HiAnime with ${result.episodes.length} episodes`);
+        } else if (result.type === 'animepahe') {
+          allepisodes.push({
+            episodes: result.episodes,
+            providerId: "animepahe",
+            animeSession: result.session,
+          });
+          logger.log(`[EPISODES] Added AnimePahe with ${result.episodes.length} episodes`);
+        }
+      }
+    });
+    
+    logger.log(`[EPISODES] Total providers: ${allepisodes.length}`);
+    logger.log(`[EPISODES] Provider IDs:`, allepisodes.map(p => p.providerId));
   } 
   const cover = await fetchEpisodeMeta(id, !refresh)
 
   // Check if redis is available
   if (redis) {
     if (allepisodes) {
-      console.log(`[EPISODES] Caching ${allepisodes.length} providers to Redis`);
+      logger.log(`[EPISODES] Caching ${allepisodes.length} providers to Redis`);
       await redis.setex(
         `episode:${id}`,
         cacheTime,
@@ -219,7 +253,7 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
           await redis.setex(`meta:${id}`, cacheTime, JSON.stringify(cover));
           data = await CombineEpisodeMeta(allepisodes, cover);
         } catch (error) {
-          console.error("Error serializing cover:", error.message);
+          logger.error("Error serializing cover:", error.message);
         }
       } else if (meta) {
         data = await CombineEpisodeMeta(allepisodes, JSON.parse(meta));
@@ -228,19 +262,19 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
       data = await CombineEpisodeMeta(allepisodes, JSON.parse(meta));
     }
 
-    console.log(`[EPISODES] Returning ${data?.length || 0} providers`);
-    console.log(`========== [EPISODES] Complete ==========\n`);
+    logger.log(`[EPISODES] Returning ${data?.length || 0} providers`);
+    logger.log(`========== [EPISODES] Complete ==========\n`);
     return data;
   } else {
-    console.error("Redis URL not provided. Caching not possible.");
-    console.log(`[EPISODES] Returning ${allepisodes?.length || 0} providers (no Redis)`);
-    console.log(`========== [EPISODES] Complete ==========\n`);
+    logger.error("Redis URL not provided. Caching not possible.");
+    logger.log(`[EPISODES] Returning ${allepisodes?.length || 0} providers (no Redis)`);
+    logger.log(`========== [EPISODES] Complete ==========\n`);
     return allepisodes;
   }
 };
 
 export const getEpisodes = async (id, status, refresh = false) => {
-  console.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh} ==========`);
+  logger.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh} ==========`);
   let cacheTime = null;
   if (status) {
     cacheTime = 60 * 60 * 3;
@@ -259,12 +293,12 @@ export const getEpisodes = async (id, status, refresh = false) => {
       // // Delete keys matching the pattern "meta:*"
       // if (keys.length > 0) {
       //   await redis.del(keys);
-      //   console.log(`Deleted ${keys.length} keys matching the pattern "meta:*"`);
+      //   logger.log(`Deleted ${keys.length} keys matching the pattern "meta:*"`);
       // }
       meta = await redis.get(`meta:${id}`);
       if (JSON.parse(meta)?.length === 0) {
         await redis.del(`meta:${id}`);
-        console.log("deleted meta cache");
+        logger.log("deleted meta cache");
         meta = null;
       }
       cached = await redis.get(`episode:${id}`);
@@ -277,31 +311,31 @@ export const getEpisodes = async (id, status, refresh = false) => {
         data = await fetchAndCacheData(id, meta, redis, cacheTime, refresh);
       }
       if (data?.length > 0) {
-        console.log("deleted cache");
+        logger.log("deleted cache");
         return data;
       }
 
-      console.log("using redis");
+      logger.log("using redis");
     } catch (error) {
-      console.error("Error checking Redis cache:", error.message);
+      logger.error("Error checking Redis cache:", error.message);
     }
   }
 
   if (cached) {
-    console.log("[getEpisodes] Using CACHED data from Redis");
+    logger.log("[getEpisodes] Using CACHED data from Redis");
     try {
       let cachedData = JSON.parse(cached);
-      console.log(`[getEpisodes] Cached providers:`, cachedData?.map(p => p.providerId));
+      logger.log(`[getEpisodes] Cached providers:`, cachedData?.map(p => p.providerId));
       if (meta) {
         cachedData = await CombineEpisodeMeta(cachedData, JSON.parse(meta));
       }
-      console.log(`========== [getEpisodes] Returning cached data ==========\n`);
+      logger.log(`========== [getEpisodes] Returning cached data ==========\n`);
       return cachedData;
     } catch (error) {
-      console.error("Error parsing cached data:", error.message);
+      logger.error("Error parsing cached data:", error.message);
     }
   } else {
-    console.log("[getEpisodes] No cache found, fetching fresh data");
+    logger.log("[getEpisodes] No cache found, fetching fresh data");
     const fetchdata = await fetchAndCacheData(
       id,
       meta,

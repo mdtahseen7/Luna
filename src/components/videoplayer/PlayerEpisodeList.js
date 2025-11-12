@@ -11,8 +11,9 @@ import { Select, SelectItem, Tooltip } from "@nextui-org/react";
 import Skeleton from "react-loading-skeleton";
 import { useSubtype } from '@/lib/store';
 import { useStore } from 'zustand';
+import { logger } from "@/utils/logger";
 
-function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
+function PlayerEpisodeList({ id, data, onprovider, initialProvider, setwatchepdata, epnum }) {
   const subtype = useStore(useSubtype, (state) => state.subtype);
   const router = useRouter();
 
@@ -24,7 +25,7 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
   const [filteredEp, setFilteredEp] = useState([]);
   const itemsPerPage = 35;
 
-  const [defaultProvider, setdefaultProvider] = useState("");
+  const [defaultProvider, setdefaultProvider] = useState(initialProvider || "");
   const [suboptions, setSuboptions] = useState(null);
   const [episodeData, setEpisodeData] = useState(null);
   const [dubcount, setDubcount] = useState(0);
@@ -64,14 +65,14 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
   useEffect(() => {
     const fetchepisodes = async () => {
       try {
-        console.log(`\n========== [PlayerEpisodeList] Fetching episodes for ID: ${id} ==========`);
-        // TEMPORARY: Force refresh to bypass cache and fetch fresh data including Kaido
-        const response = await getEpisodes(id, data?.status === "RELEASING", true);
-        console.log(`[PlayerEpisodeList] Received response:`, response);
-        console.log(`[PlayerEpisodeList] Number of providers:`, response?.length || 0);
+        logger.log(`\n========== [PlayerEpisodeList] Fetching episodes for ID: ${id} ==========`);
+        // Use cache for faster loading (only bypass for releasing anime)
+        const response = await getEpisodes(id, data?.status === "RELEASING", false);
+        logger.log(`[PlayerEpisodeList] Received response:`, response);
+        logger.log(`[PlayerEpisodeList] Number of providers:`, response?.length || 0);
         if (response && response.length > 0) {
           response.forEach((provider, idx) => {
-            console.log(`[PlayerEpisodeList] Provider ${idx + 1}:`, {
+            logger.log(`[PlayerEpisodeList] Provider ${idx + 1}:`, {
               providerId: provider.providerId,
               episodeCount: provider.episodes?.length || (provider.episodes?.sub?.length + provider.episodes?.dub?.length) || 0,
               hasAnimeSession: !!provider.animeSession,
@@ -82,27 +83,27 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
           // Add MegaPlay (Server 4) if HiAnime exists - uses HiAnime's episodes
           const hiAnimeProvider = response.find(p => p.providerId === 'hianime');
           if (hiAnimeProvider) {
-            console.log(`[PlayerEpisodeList] Adding MegaPlay using HiAnime episodes`);
+            logger.log(`[PlayerEpisodeList] Adding MegaPlay using HiAnime episodes`);
             response.push({
               providerId: 'megaplay',
               episodes: hiAnimeProvider.episodes, // Reuse HiAnime episodes
               animeId: hiAnimeProvider.animeId
             });
           } else {
-            console.log(`[PlayerEpisodeList] No HiAnime provider found for MegaPlay`);
+            logger.log(`[PlayerEpisodeList] No HiAnime provider found for MegaPlay`);
           }
         }
         setEpisodeData(response);
         if (response) {
           const { suboptions, dubLength } = ProvidersMap(response);
-          console.log(`[PlayerEpisodeList] ProvidersMap result:`, { suboptions, dubLength });
+          logger.log(`[PlayerEpisodeList] ProvidersMap result:`, { suboptions, dubLength });
           setSuboptions(suboptions);
           setDubcount(dubLength);
         }
-        console.log(`========== [PlayerEpisodeList] Complete ==========\n`);
+        logger.log(`========== [PlayerEpisodeList] Complete ==========\n`);
         setloading(false);
       } catch (error) {
-        console.error('[PlayerEpisodeList] Error:', error);
+        logger.error('[PlayerEpisodeList] Error:', error);
         setloading(false);
       }
     };
@@ -116,9 +117,10 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
   };
 
   useEffect(() => {
-    setdefaultProvider(onprovider);
-    setProviderChanged(true);
-  }, [])
+    if (initialProvider) {
+      setdefaultProvider(initialProvider);
+    }
+  }, [initialProvider])
 
 
   useEffect(() => {
@@ -150,10 +152,11 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
   useEffect(() => {
     if (!providerChanged && (currentEpisodes?.[epnum - 1]?.id || currentEpisodes?.[epnum - 1]?.episodeId)) {
       const episodeId = encodeURIComponent(currentEpisodes?.[epnum - 1]?.id || currentEpisodes?.[epnum - 1]?.episodeId);
-      router.push(`/anime/watch?id=${id}&host=${defaultProvider}&epid=${episodeId}&ep=${epnum}&type=${subtype}`);
+      // Update URL without page refresh using replace
+      window.history.replaceState(null, '', `/anime/watch?id=${id}&host=${defaultProvider}&epid=${episodeId}&ep=${epnum}&type=${subtype}`);
+      // Notify parent component (PlayerComponent) about provider change
+      onprovider(defaultProvider, episodeId);
     }
-  //   setTimeout(() => {
-  // }, 0);
   }, [providerChanged]);
 
   const refreshEpisodes = async () => {
@@ -168,7 +171,7 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
       }
       setRefreshLoading(false);
     } catch (error) {
-      console.error("Error refreshing episodes:", error);
+      logger.error("Error refreshing episodes:", error);
       setRefreshLoading(false);
     }
   };
@@ -202,10 +205,10 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
                 <span className={styles.episodetypes}>
                   <svg viewBox="0 0 32 32" className="w-5 h-5" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" clipRule="evenodd" d="M4.6661 6.66699C4.29791 6.66699 3.99943 6.96547 3.99943 7.33366V24.667C3.99943 25.0352 4.29791 25.3337 4.6661 25.3337H27.3328C27.701 25.3337 27.9994 25.0352 27.9994 24.667V7.33366C27.9994 6.96547 27.701 6.66699 27.3328 6.66699H4.6661ZM8.66667 21.3333C8.29848 21.3333 8 21.0349 8 20.6667V11.3333C8 10.9651 8.29848 10.6667 8.66667 10.6667H14C14.3682 10.6667 14.6667 10.9651 14.6667 11.3333V12.6667C14.6667 13.0349 14.3682 13.3333 14 13.3333H10.8C10.7264 13.3333 10.6667 13.393 10.6667 13.4667V18.5333C10.6667 18.607 10.7264 18.6667 10.8 18.6667H14C14.3682 18.6667 14.6667 18.9651 14.6667 19.3333V20.6667C14.6667 21.0349 14.3682 21.3333 14 21.3333H8.66667ZM18 21.3333C17.6318 21.3333 17.3333 21.0349 17.3333 20.6667V11.3333C17.3333 10.9651 17.6318 10.6667 18 10.6667H23.3333C23.7015 10.6667 24 10.9651 24 11.3333V12.6667C24 13.0349 23.7015 13.3333 23.3333 13.3333H20.1333C20.0597 13.3333 20 13.393 20 13.4667V18.5333C20 18.607 20.0597 18.6667 20.1333 18.6667H23.3333C23.7015 18.6667 24 18.9651 24 19.3333V20.6667C24 21.0349 23.7015 21.3333 23.3333 21.3333H18Z" fill="currentColor"></path></svg>
                   SUB: </span>
-                {console.log('[PlayerEpisodeList RENDER] episodeData:', episodeData)}
-                {console.log('[PlayerEpisodeList RENDER] episodeData length:', episodeData?.length)}
+                {logger.log('[PlayerEpisodeList RENDER] episodeData:', episodeData)}
+                {logger.log('[PlayerEpisodeList RENDER] episodeData length:', episodeData?.length)}
                 {episodeData?.map((item, index) => {
-                  console.log(`[PlayerEpisodeList RENDER] Provider ${index}:`, item.providerId);
+                  logger.log(`[PlayerEpisodeList RENDER] Provider ${index}:`, item.providerId);
                   return (
                     <div key={item.providerId} value={item.providerId} className={item.providerId === defaultProvider && subtype === 'sub' ? styles.providerselected : styles.provider} onClick={() => handleProviderChange(item.providerId, "sub")}>
                       {getProviderDisplayName(item.providerId)}
@@ -332,3 +335,4 @@ function PlayerEpisodeList({ id, data, onprovider, setwatchepdata, epnum }) {
 }
 
 export default PlayerEpisodeList;
+

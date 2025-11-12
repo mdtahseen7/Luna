@@ -1,25 +1,26 @@
 "use server"
+import { logger } from "@/utils/logger";
 
 export async function getAnimePaheSources(animeSession, episodeSession) {
     try {
         const API_URL = process.env.ANIMEPAHE_API_URL;
         if (!API_URL) {
-            console.log("[AnimePahe] API URL not configured");
+            logger.log("[AnimePahe] API URL not configured");
             return null;
         }
 
-        console.log(`[AnimePahe] Fetching sources for anime_session: ${animeSession}, episode_session: ${episodeSession}`);
+        logger.log(`[AnimePahe] Fetching sources for anime_session: ${animeSession}, episode_session: ${episodeSession}`);
         
         const response = await fetch(`${API_URL}/sources?anime_session=${animeSession}&episode_session=${episodeSession}`);
         
         if (!response.ok) {
-            console.error(`[AnimePahe] Error fetching sources: ${response.status} ${response.statusText}`);
+            logger.error(`[AnimePahe] Error fetching sources: ${response.status} ${response.statusText}`);
             return null;
         }
 
         const sources = await response.json();
-        console.log(`[AnimePahe] Found ${sources?.length || 0} sources`);
-        console.log(`[AnimePahe] Raw sources from API:`, JSON.stringify(sources, null, 2));
+        logger.log(`[AnimePahe] Found ${sources?.length || 0} sources`);
+        logger.log(`[AnimePahe] Raw sources from API:`, JSON.stringify(sources, null, 2));
 
         // Return sources in iframe-friendly format
         // Since resolver doesn't work, we'll use the Kwik URLs directly for iframe
@@ -34,10 +35,10 @@ export async function getAnimePaheSources(animeSession, episodeSession) {
             rawSources: sources,
         };
         
-        console.log(`[AnimePahe] Formatted response:`, JSON.stringify(formattedResponse, null, 2));
+        logger.log(`[AnimePahe] Formatted response:`, JSON.stringify(formattedResponse, null, 2));
         return formattedResponse;
     } catch (error) {
-        console.error("[AnimePahe] Error fetching sources:", error.message);
+        logger.error("[AnimePahe] Error fetching sources:", error.message);
         return null;
     }
 }
@@ -46,26 +47,26 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
     try {
         const API_URL = process.env.KAIDO_API_URL;
         if (!API_URL || !episodeId) {
-            console.log("[Kaido] API URL not configured or episodeId missing");
+            logger.log("[Kaido] API URL not configured or episodeId missing");
             return null;
         }
 
-        console.log(`[Kaido] Fetching sources for episode: ${episodeId}, version: ${version}, server: ${server}`);
+        logger.log(`[Kaido] Fetching sources for episode: ${episodeId}, version: ${version}, server: ${server}`);
         
         const response = await fetch(`${API_URL}/api/kaido/sources/${episodeId}?version=${version}&server=${server}`);
         
         if (!response.ok) {
-            console.error(`[Kaido] Error fetching sources: ${response.status} ${response.statusText}`);
+            logger.error(`[Kaido] Error fetching sources: ${response.status} ${response.statusText}`);
             return null;
         }
 
         const result = await response.json();
-        console.log(`[Kaido] Raw response:`, result);
-        console.log(`[Kaido] Found ${result?.data?.sources?.length || 0} sources`);
+        logger.log(`[Kaido] Raw response:`, result);
+        logger.log(`[Kaido] Found ${result?.data?.sources?.length || 0} sources`);
         
         // Format sources for Vidstack player with proxy support
         const PROXY_URI = process.env.NEXT_PUBLIC_PROXY_URI;
-        console.log(`[Kaido] Proxy URI:`, PROXY_URI);
+        logger.log(`[Kaido] Proxy URI:`, PROXY_URI);
         
         const formattedSources = result.data?.sources?.map(source => {
             // Use proxy for m3u8 URLs to avoid CORS
@@ -73,8 +74,8 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
             const url = PROXY_URI 
                 ? `${PROXY_URI}${encodeURIComponent(source.url)}`
                 : source.url;
-            console.log(`[Kaido] Original:`, source.url);
-            console.log(`[Kaido] Proxied:`, url);
+            logger.log(`[Kaido] Original:`, source.url);
+            logger.log(`[Kaido] Proxied:`, url);
             return {
                 url: url,
                 quality: source.quality || 'auto',
@@ -82,7 +83,7 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
             };
         }) || [];
         
-        console.log(`[Kaido] Formatted sources for Vidstack:`, formattedSources);
+        logger.log(`[Kaido] Formatted sources for Vidstack:`, formattedSources);
         
         // Format subtitles for Vidstack
         const formattedSubtitles = result.data?.subtitles?.map(sub => ({
@@ -94,7 +95,7 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
             default: sub.default || false
         })) || [];
         
-        console.log(`[Kaido] Formatted subtitles:`, formattedSubtitles);
+        logger.log(`[Kaido] Formatted subtitles:`, formattedSubtitles);
         
         // Return in standard format for Vidstack player
         return {
@@ -106,7 +107,7 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
             headers: result.headers,
         };
     } catch (error) {
-        console.error("[Kaido] Error fetching sources:", error.message);
+        logger.error("[Kaido] Error fetching sources:", error.message);
         return null;
     }
 }
@@ -115,34 +116,34 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
     try {
         const API_URL = process.env.KAIDO_API_URL; // Same base URL
         if (!API_URL || !episodeId) {
-            console.log("[HiAnime] API URL not configured or episodeId missing");
+            logger.log("[HiAnime] API URL not configured or episodeId missing");
             return null;
         }
 
-        console.log(`[HiAnime] Fetching sources for episode: ${episodeId}, version: ${version}, server: ${server}`);
+        logger.log(`[HiAnime] Fetching sources for episode: ${episodeId}, version: ${version}, server: ${server}`);
         
         const response = await fetch(`${API_URL}/api/hianime/sources/${episodeId}?version=${version}&server=${server}`);
         
         if (!response.ok) {
-            console.error(`[HiAnime] Error fetching sources: ${response.status} ${response.statusText}`);
+            logger.error(`[HiAnime] Error fetching sources: ${response.status} ${response.statusText}`);
             return null;
         }
 
         const result = await response.json();
-        console.log(`[HiAnime] Raw response:`, result);
-        console.log(`[HiAnime] Found ${result?.data?.sources?.length || 0} sources`);
+        logger.log(`[HiAnime] Raw response:`, result);
+        logger.log(`[HiAnime] Found ${result?.data?.sources?.length || 0} sources`);
         
         // Format sources for Vidstack player with proxy support
         const PROXY_URI = process.env.NEXT_PUBLIC_PROXY_URI;
-        console.log(`[HiAnime] Proxy URI:`, PROXY_URI);
+        logger.log(`[HiAnime] Proxy URI:`, PROXY_URI);
         
         const formattedSources = result.data?.sources?.map(source => {
             // Use proxy for m3u8 URLs to avoid CORS
             const url = PROXY_URI && source.isM3u8
                 ? `${PROXY_URI}${encodeURIComponent(source.url)}`
                 : source.url;
-            console.log(`[HiAnime] Original:`, source.url);
-            console.log(`[HiAnime] Proxied:`, url);
+            logger.log(`[HiAnime] Original:`, source.url);
+            logger.log(`[HiAnime] Proxied:`, url);
             return {
                 url: url,
                 quality: source.quality || 'auto',
@@ -150,7 +151,7 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
             };
         }) || [];
         
-        console.log(`[HiAnime] Formatted sources for Vidstack:`, formattedSources);
+        logger.log(`[HiAnime] Formatted sources for Vidstack:`, formattedSources);
         
         // Format subtitles for Vidstack
         const formattedSubtitles = result.data?.subtitles?.map(sub => ({
@@ -162,7 +163,7 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
             default: sub.default || false
         })) || [];
         
-        console.log(`[HiAnime] Formatted subtitles:`, formattedSubtitles);
+        logger.log(`[HiAnime] Formatted subtitles:`, formattedSubtitles);
         
         // Return in standard format for Vidstack player
         return {
@@ -174,7 +175,7 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
             headers: result.headers,
         };
     } catch (error) {
-        console.error("[HiAnime] Error fetching sources:", error.message);
+        logger.error("[HiAnime] Error fetching sources:", error.message);
         return null;
     }
 }
@@ -182,28 +183,28 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
 export async function getMegaPlaySources(episodeId) {
     try {
         if (!episodeId) {
-            console.log("[MegaPlay] episodeId missing");
+            logger.log("[MegaPlay] episodeId missing");
             return null;
         }
 
-        console.log(`[MegaPlay] Processing HiAnime episodeId: ${episodeId}`);
+        logger.log(`[MegaPlay] Processing HiAnime episodeId: ${episodeId}`);
         
         // Extract the number after "episode-" from HiAnime's episodeId
         // Example: "bleach-thousand-year-blood-war-the-conflict-19322-episode-128444" -> "128444"
         const episodeMatch = episodeId.match(/episode-(\d+)$/i);
         
         if (!episodeMatch || !episodeMatch[1]) {
-            console.error(`[MegaPlay] Could not extract episode number from: ${episodeId}`);
+            logger.error(`[MegaPlay] Could not extract episode number from: ${episodeId}`);
             return null;
         }
         
         const episodeNumber = episodeMatch[1];
-        console.log(`[MegaPlay] Extracted episode number: ${episodeNumber}`);
+        logger.log(`[MegaPlay] Extracted episode number: ${episodeNumber}`);
         
         // Construct MegaPlay iframe URL
         // Format: https://megaplay.buzz/stream/s-2/{episodeNumber}/sub
         const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeNumber}/sub`;
-        console.log(`[MegaPlay] Generated iframe URL: ${iframeUrl}`);
+        logger.log(`[MegaPlay] Generated iframe URL: ${iframeUrl}`);
         
         // Return in iframe format (similar to AnimePahe)
         return {
@@ -215,7 +216,7 @@ export async function getMegaPlaySources(episodeId) {
             tracks: []
         };
     } catch (error) {
-        console.error("[MegaPlay] Error generating sources:", error.message);
+        logger.error("[MegaPlay] Error generating sources:", error.message);
         return null;
     }
 }
@@ -223,46 +224,47 @@ export async function getMegaPlaySources(episodeId) {
 
 export async function getAnimeSources(id, provider, epid, epnum, subtype, animeSession = null) {
     try {
-        console.log(`[getAnimeSources] Called with provider: ${provider}, animeSession: ${animeSession}, epid: ${epid}`);
+        logger.log(`[getAnimeSources] Called with provider: ${provider}, animeSession: ${animeSession}, epid: ${epid}`);
         
         // AnimePahe and Kaido providers
         if (provider === "animepahe") {
             // epid is the episode session, we need the anime session too
             // The anime session should be passed from the episode data
-            console.log(`[getAnimeSources] Calling getAnimePaheSources with animeSession: ${animeSession}, epid: ${epid}`);
+            logger.log(`[getAnimeSources] Calling getAnimePaheSources with animeSession: ${animeSession}, epid: ${epid}`);
             const data = await getAnimePaheSources(animeSession, epid);
-            console.log(`[getAnimeSources] getAnimePaheSources returned:`, data);
+            logger.log(`[getAnimeSources] getAnimePaheSources returned:`, data);
             return data;
         }
         
         if (provider === "kaido") {
             // epid is the episode ID, subtype is sub/dub
-            console.log(`[getAnimeSources] Calling getKaidoSources with epid: ${epid}, subtype: ${subtype}`);
+            logger.log(`[getAnimeSources] Calling getKaidoSources with epid: ${epid}, subtype: ${subtype}`);
             const data = await getKaidoSources(epid, subtype);
-            console.log(`[getAnimeSources] getKaidoSources returned:`, data);
+            logger.log(`[getAnimeSources] getKaidoSources returned:`, data);
             return data;
         }
 
         if (provider === "hianime") {
             // epid is the episode ID, subtype is sub/dub
-            console.log(`[getAnimeSources] Calling getHiAnimeSources with epid: ${epid}, subtype: ${subtype}`);
+            logger.log(`[getAnimeSources] Calling getHiAnimeSources with epid: ${epid}, subtype: ${subtype}`);
             const data = await getHiAnimeSources(epid, subtype);
-            console.log(`[getAnimeSources] getHiAnimeSources returned:`, data);
+            logger.log(`[getAnimeSources] getHiAnimeSources returned:`, data);
             return data;
         }
 
         if (provider === "megaplay") {
             // epid is the HiAnime episode ID (we extract the number from it)
-            console.log(`[getAnimeSources] Calling getMegaPlaySources with epid: ${epid}`);
+            logger.log(`[getAnimeSources] Calling getMegaPlaySources with epid: ${epid}`);
             const data = await getMegaPlaySources(epid);
-            console.log(`[getAnimeSources] getMegaPlaySources returned:`, data);
+            logger.log(`[getAnimeSources] getMegaPlaySources returned:`, data);
             return data;
         }
 
-        console.log(`[Sources] Unknown provider: ${provider}`);
+        logger.log(`[Sources] Unknown provider: ${provider}`);
         return null;
     } catch (error) {
-        console.log(error);
+        logger.log(error);
         return null;
     }
 }
+

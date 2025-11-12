@@ -56,13 +56,13 @@ const releaseLogs = [
     //     ],
     // },
     {
-        version: "V3.2.2",
+        version: "V5.0",
         changes: [
-            "Fixed new anime not showing.",
-            "Fixed anime not found issue.",
-            "Fixed recent episodes",
-            "Fixed Player Not Working Properly",
-            "Fixed Some Bugs",
+            "Full codebase overhaul",
+            "Fixed the whole website for better performance and UX",
+            "Fixed anime not working properly",
+            "Bump new version",
+            "Redevelopment started - Welcome to Akira!",
         ],
     },
 ];
@@ -100,7 +100,7 @@ export default function Changelogs() {
                                         <div className="flex gap-3 items-center">
                                             {/* Github Icon */}
                                             <Link
-                                                href="https://github.com/Noname968/airin"
+                                                href="https://github.com/mdtahseen7/airin-revived"
                                                 target="_blank"
                                                 className="w-5 h-5 hover:opacity-75"
                                             >
@@ -149,7 +149,7 @@ export default function Changelogs() {
                                     </div>
                                     <div className="mt-4">
                                         <p className="text-sm text-gray-400">
-                                            Hi there! 🎉 Welcome to the Changelogs section! 🌟 Here, explore the latest updates made to the site! 🚀
+                                            Hi there! 🎉 Welcome to the Akira! 🌟 Here, explore the latest updates made to the site! 🚀
                                         </p>
                                     </div>
                                     <div className="my-3 flex items-center justify-evenly flex-col">

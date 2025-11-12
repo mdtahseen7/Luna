@@ -7,6 +7,7 @@ import { Spinner } from '@vidstack/react';
 import { toast } from 'sonner';
 import { useTitle, useNowPlaying, useDataInfo } from '../../lib/store';
 import { useStore } from "zustand";
+import { logger } from "@/utils/logger";
 
 function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, savedep }) {
     const animetitle = useStore(useTitle, (state) => state.animetitle);
@@ -19,6 +20,23 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
     const [thumbnails, setThumbnails] = useState(null);
     const [skiptimes, setSkipTimes] = useState(null);
     const [error, setError] = useState(false);
+    
+    // State to track current provider and episodeId for dynamic changes
+    const [currentProvider, setCurrentProvider] = useState(provider);
+    const [currentEpisodeId, setCurrentEpisodeId] = useState(epId);
+    
+    // Sync state with props when they change (initial load)
+    useEffect(() => {
+        setCurrentProvider(provider);
+        setCurrentEpisodeId(epId);
+    }, [provider, epId]);
+    
+    // Callback function to handle provider changes from PlayerEpisodeList
+    const handleProviderChange = (newProvider, newEpisodeId) => {
+        logger.log(`[PlayerComponent] Provider changed to: ${newProvider}, Episode ID: ${newEpisodeId}`);
+        setCurrentProvider(newProvider);
+        setCurrentEpisodeId(decodeURIComponent(newEpisodeId));
+    };
 
     useEffect(() => {
         useDataInfo.setState({ dataInfo: data });
@@ -29,29 +47,29 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 // Get anime session for AnimePahe provider
                 // First try to get it from current episode data, then from provider data
                 let animeSession = null;
-                if (provider === "animepahe") {
+                if (currentProvider === "animepahe") {
                     // Check if current episode has anime session embedded
                     const currentEp = episodeData?.find((i) => i.number === parseInt(epNum));
                     if (currentEp?.animeSession) {
                         animeSession = currentEp.animeSession;
-                        console.log(`[PlayerComponent] Using animeSession from episode: ${animeSession}`);
+                        logger.log(`[PlayerComponent] Using animeSession from episode: ${animeSession}`);
                     } else if (episodeProviderData?.animeSession) {
                         animeSession = episodeProviderData.animeSession;
-                        console.log(`[PlayerComponent] Using animeSession from provider: ${animeSession}`);
+                        logger.log(`[PlayerComponent] Using animeSession from provider: ${animeSession}`);
                     } else {
-                        console.log(`[PlayerComponent] WARNING: No animeSession found!`, { currentEp, episodeProviderData });
+                        logger.log(`[PlayerComponent] WARNING: No animeSession found!`, { currentEp, episodeProviderData });
                     }
                 }
 
-                const response = await getAnimeSources(id, provider, epId, epNum, subdub, animeSession);
+                const response = await getAnimeSources(id, currentProvider, currentEpisodeId, epNum, subdub, animeSession);
 
-                console.log("[PlayerComponent] Source response:", response);
-                console.log("[PlayerComponent] Sources array:", response?.sources);
-                console.log("[PlayerComponent] Sources length:", response?.sources?.length);
+                logger.log("[PlayerComponent] Source response:", response);
+                logger.log("[PlayerComponent] Sources array:", response?.sources);
+                logger.log("[PlayerComponent] Sources length:", response?.sources?.length);
                 
                 // Check if we have sources
                 if (!response?.sources || response.sources.length === 0) {
-                    console.error("[PlayerComponent] No sources found in response!");
+                    logger.error("[PlayerComponent] No sources found in response!");
                     toast.error("Failed to load episode. Please try again later.");
                     setError(true);
                     setLoading(false);
@@ -60,10 +78,10 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 
                 // Check if sources are iframe type (AnimePahe/MegaPlay) or m3u8 (Kaido/HiAnime with Vidstack)
                 const firstSource = response?.sources?.[0];
-                console.log("[PlayerComponent] First source:", firstSource);
-                console.log("[PlayerComponent] Provider:", provider);
+                logger.log("[PlayerComponent] First source:", firstSource);
+                logger.log("[PlayerComponent] Provider:", currentProvider);
                 
-                if ((provider === 'animepahe' || provider === 'megaplay') && firstSource?.type === 'iframe') {
+                if ((currentProvider === 'animepahe' || currentProvider === 'megaplay') && firstSource?.type === 'iframe') {
                     // AnimePahe and MegaPlay use iframe players
                     let iframeUrl = firstSource.url;
                     
@@ -73,17 +91,17 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                         iframeUrl = `${iframeUrl}${separator}autoplay=1`;
                     }
                     
-                    console.log(`[PlayerComponent] Using ${provider} iframe source with autoplay:`, iframeUrl);
+                    logger.log(`[PlayerComponent] Using ${currentProvider} iframe source with autoplay:`, iframeUrl);
                     setSrc({ type: 'iframe', url: iframeUrl });
-                } else if (provider === 'kaido' || provider === 'hianime') {
+                } else if (currentProvider === 'kaido' || currentProvider === 'hianime') {
                     // Kaido and HiAnime use Vidstack player with proxied m3u8
                     const m3u8Source = firstSource?.url || firstSource;
-                    console.log(`[PlayerComponent] Using ${provider} m3u8 with Vidstack (proxied):`, m3u8Source);
+                    logger.log(`[PlayerComponent] Using ${currentProvider} m3u8 with Vidstack (proxied):`, m3u8Source);
                     setSrc(m3u8Source);
                 } else {
                     // For regular m3u8 sources (fallback)
                     const sources = response?.sources?.find(i => i.quality === "default" || i.quality === "auto")?.url || response?.sources?.find(i => i.quality === "1080p")?.url || response?.sources?.find(i => i.type === "hls")?.url;
-                    console.log("[PlayerComponent] Using regular source:", sources);
+                    logger.log("[PlayerComponent] Using regular source:", sources);
                     setSrc(sources);
                 }
                 const download = response?.download;
@@ -103,8 +121,8 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 // Use provider's skip times if available, otherwise fall back to AniSkip API
                 let skiptime = [];
                 
-                if ((provider === 'kaido' || provider === 'hianime') && (response?.intro || response?.outro)) {
-                    console.log(`[PlayerComponent] Using ${provider} skip times:`, { intro: response.intro, outro: response.outro });
+                if ((currentProvider === 'kaido' || currentProvider === 'hianime') && (response?.intro || response?.outro)) {
+                    logger.log(`[PlayerComponent] Using ${currentProvider} skip times:`, { intro: response.intro, outro: response.outro });
                     
                     if (response.intro) {
                         skiptime.push({
@@ -157,24 +175,24 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 const episode = {
                     download: download || null,
                     skiptimes: skiptime || [],
-                    epId: epId || null,
-                    provider: provider || null,
+                    epId: currentEpisodeId || null,
+                    provider: currentProvider || null,
                     epNum: epNum || null,
                     subtype: subdub || null,
                 };
 
                 useNowPlaying.setState({ nowPlaying: episode });
                 setSkipTimes(skiptime);
-                // console.log(skipData);
+                // logger.log(skipData);
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                logger.error('Error fetching data:', error);
                 toast.error("Failed to load episode. Please try again later.");
                 const episode = {
                     download: null,
                     skiptimes: [],
-                    epId: epId || null,
-                    provider: provider || null,
+                    epId: currentEpisodeId || null,
+                    provider: currentProvider || null,
                     epNum: epNum || null,
                     subtype: subdub || null,
                 };
@@ -184,7 +202,7 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
             }
         };
         fetchSources();
-    }, [id, provider, epId, epNum, subdub, episodeData, episodeProviderData]);
+    }, [id, currentProvider, currentEpisodeId, epNum, subdub, episodeData, episodeProviderData, data]);
 
     useEffect(() => {
         if (episodeData) {
@@ -258,10 +276,18 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                 </div>
             </div>
             <div className='w-[98%] mx-auto lg:w-full'>
-                <PlayerEpisodeList id={id} data={data} setwatchepdata={setepisodeData} onprovider={provider} epnum={epNum} />
+                <PlayerEpisodeList 
+                    id={id} 
+                    data={data} 
+                    setwatchepdata={setepisodeData} 
+                    onprovider={handleProviderChange}
+                    initialProvider={provider}
+                    epnum={epNum} 
+                />
             </div>
         </div>
     )
 }
 
 export default PlayerComponent
+
