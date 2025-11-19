@@ -7,7 +7,6 @@ import { useStore } from 'zustand';
 
 function ItemContent({ anime, cardid }) {
     const animetitle = useStore(useTitle, (state) => state.animetitle);
-    const [imageLoaded, setImageLoaded] = useState(false);
 
     function containsEngChar(text) {
         const englishRegex = /[a-zA-Z!@#$%^&*()_+{}\[\]:;<>,.?~\\/-] /;
@@ -20,6 +19,11 @@ function ItemContent({ anime, cardid }) {
                 <div className="flex-shrink-0 absolute top-0 right-0 flex items-center justify-center gap-[.4rem] bg-black/60 backdrop-blur font-light xl:font-normal text-white !text-xs  line-clamp-1 px-2 p-1 rounded-bl-lg tracking-wider">
                     <span className='hidden md:flex'>Episode</span><span className='md:hidden'>Ep</span> <span className='font-medium'>{anime?.currentEpisode || '?'}</span></div>
             )}
+            {cardid === 'Currently Watching' && (
+                <div className="flex-shrink-0 absolute top-0 right-0 flex items-center justify-center gap-[.4rem] bg-black/60 backdrop-blur font-light xl:font-normal text-white !text-xs  line-clamp-1 px-2 p-1 rounded-bl-lg tracking-wider">
+                    <span className='hidden md:flex'>Ep</span><span className='md:hidden'>Ep</span> <span className='font-medium'>{anime?.listProgress || 0}/{anime?.nextAiringEpisode ? (anime.nextAiringEpisode.episode - 1) : (anime?.episodes || '?')}/{anime?.episodes || '?'}</span>
+                </div>
+            )}
              {cardid === 'Related Anime' && (
                 <div className="flex-shrink-0 absolute top-0 right-0 flex items-center justify-center gap-[.4rem] bg-black/60 backdrop-blur font-light xl:font-normal text-white !text-xs  line-clamp-1 px-2 p-1 rounded-bl-lg tracking-wider">
                     <span className=''>{anime?.relationType}</span></div>
@@ -30,12 +34,8 @@ function ItemContent({ anime, cardid }) {
                     alt={anime?.title[animetitle] || anime?.title?.romaji}
                     width={155}
                     height={230}
-                    placeholder="blur"
                     loading='eager'
-                    blurDataURL={'https://wallpapercave.com/wp/wp11913677.jpg' || anime.coverImage || anime.image}
-                    className={`${styles.cardimage} opacity-0 transition-all duration-500`}
-                    onLoad={(e) => e.target.classList.remove('opacity-0')}
-                    // onLoad={() => setImageLoaded(true)}
+                    className={`${styles.cardimage}`}
                 />
             </div>
             <div className="hidden xl:flex h-[85%] w-[100%] rounded absolute hover:bg-gradient-to-t from-black/90 to-transparent z-7 opacity-0 hover:opacity-100 transition-all duration-300 ease  justify-center">

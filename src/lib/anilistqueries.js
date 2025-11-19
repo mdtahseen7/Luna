@@ -615,6 +615,47 @@ mutation (
 }
 `
 
+export const userwatchinglist = `
+query ($userId: Int, $userName: String) {
+  MediaListCollection(userId: $userId, userName: $userName, type: ANIME, status: CURRENT, sort: UPDATED_TIME_DESC) {
+    lists {
+      name
+      status
+      entries {
+        id
+        mediaId
+        status
+        progress
+        media {
+          id
+          idMal
+          title {
+            romaji
+            english
+            userPreferred
+          }
+          coverImage {
+            large
+            extraLarge
+            color
+          }
+          episodes
+          nextAiringEpisode {
+            airingAt
+            episode
+          }
+          status
+          format
+          averageScore
+          popularity
+          bannerImage
+        }
+      }
+    }
+  }
+}
+`;
+
 export const userprofile = `
 query ($username: String, $status: MediaListStatus) {
   MediaListCollection(userName: $username, type: ANIME, status: $status, sort: SCORE_DESC) {

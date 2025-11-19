@@ -2,12 +2,13 @@
 import Animecard from '@/components/CardComponent/Animecards'
 import Herosection from '@/components/home/Herosection'
 import Navbarcomponent from '@/components/navbar/Navbar'
-import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist, UpcomingAnilist } from '@/lib/Anilistfunctions'
+import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist, UpcomingAnilist, UserWatchingList } from '@/lib/Anilistfunctions'
 import React from 'react'
 import { MotionDiv } from '@/utils/MotionDiv'
 import VerticalList from '@/components/home/VerticalList'
 import ContinueWatching from '@/components/home/ContinueWatching'
 import RecentEpisodes from '@/components/home/RecentEpisodes'
+import UserWatchingListComponent from '@/components/home/UserWatchingList'
 import { getAuthSession } from './api/auth/[...nextauth]/route'
 import { redis } from '@/lib/rediscache'
 // import { getWatchHistory } from '@/lib/EpHistoryfunctions'
@@ -51,6 +52,14 @@ async function getHomePage() {
 async function Home() {
   const session = await getAuthSession();
   const { herodata = [], populardata = [], top100data = [], seasonaldata = [], upcomingdata = [] } = await getHomePage();
+  
+  // Fetch user's currently watching anime from AniList if logged in
+  let userWatchingData = [];
+  if (session?.user?.token) {
+    // Pass null for userId to let AniList infer user from token
+    // This avoids issues where session.user.id is the MongoDB ID instead of AniList ID
+    userWatchingData = await UserWatchingList(session.user.token, null);
+  }
   // const history = await getWatchHistory();
   // console.log(history)
 
@@ -59,10 +68,16 @@ async function Home() {
       <Navbarcomponent home={true} />
       <Herosection data={herodata} />
       <div className='sm:max-w-[97%] md:max-w-[95%] lg:max-w-[90%] xl:max-w-[85%] mx-auto flex flex-col md:gap-11 sm:gap-7 gap-5 mt-8'>
-        <div
-        >
-          <ContinueWatching session={session} />
-        </div>
+        {session?.user && (
+          <div>
+            <ContinueWatching session={session} />
+          </div>
+        )}
+        {session?.user && userWatchingData.length > 0 && (
+          <div>
+            <UserWatchingListComponent data={userWatchingData} />
+          </div>
+        )}
         <div
         >
           <RecentEpisodes cardid="Recent Episodes" />

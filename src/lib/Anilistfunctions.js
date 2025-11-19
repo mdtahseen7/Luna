@@ -1,5 +1,5 @@
 "use server"
-import { trending, animeinfo, advancedsearch, top100anime, seasonal, popular } from "./anilistqueries";
+import { trending, animeinfo, advancedsearch, top100anime, seasonal, popular, userwatchinglist } from "./anilistqueries";
 
 export const TrendingAnilist = async () => {
     try {
@@ -218,6 +218,95 @@ export const UpcomingAnilist = async () => {
         return mappedData;
     } catch (error) {
         console.error('[UpcomingAnilist] Error fetching upcoming anime:', error);
+        return [];
+    }
+};
+
+export const UserWatchingList = async (token, userId) => {
+    try {
+        if (!token && !userId) {
+            console.log('[UserWatchingList] No token or userId provided');
+            return [];
+        }
+
+        let targetUserId = userId;
+
+        // If no userId provided but we have token, fetch the authenticated user's ID
+        if (!targetUserId && token) {
+            try {
+                const viewerResponse = await fetch('https://graphql.anilist.co', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        query: `query { Viewer { id } }`
+                    }),
+                }, { cache: "no-store" });
+
+                if (viewerResponse.ok) {
+                    const viewerData = await viewerResponse.json();
+                    targetUserId = viewerData.data?.Viewer?.id;
+                }
+            } catch (e) {
+                console.error('[UserWatchingList] Error fetching Viewer ID:', e);
+            }
+        }
+
+        if (!targetUserId) {
+             console.log('[UserWatchingList] Could not determine user ID');
+             return [];
+        }
+
+        const response = await fetch('https://graphql.anilist.co', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: JSON.stringify({
+                query: userwatchinglist,
+                variables: {
+                    userId: parseInt(targetUserId),
+                },
+            }),
+        }, { cache: "no-store" });
+
+        if (!response.ok) {
+            console.error(`[UserWatchingList] API returned status: ${response.status}`);
+            return [];
+        }
+
+        const data = await response.json();
+        
+        if (!data?.data?.MediaListCollection?.lists) {
+            // console.log('[UserWatchingList] No lists found');
+            return [];
+        }
+
+        // Find the CURRENT list specifically
+        const currentList = data.data.MediaListCollection.lists.find(list => list.status === 'CURRENT');
+        
+        if (!currentList || !currentList.entries || currentList.entries.length === 0) {
+            // console.log('[UserWatchingList] No currently watching anime found');
+            return [];
+        }
+
+        // Extract media from entries and return only those with CURRENT status
+        const watchingAnime = currentList.entries
+            .filter(entry => entry.status === 'CURRENT')
+            .map(entry => ({
+                ...entry.media,
+                listProgress: entry.progress,
+                listId: entry.id
+            }));
+
+        return watchingAnime;
+    } catch (error) {
+        console.error('[UserWatchingList] Error fetching watching list:', error);
         return [];
     }
 };
