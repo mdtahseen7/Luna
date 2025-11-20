@@ -730,9 +730,14 @@ query($page: Int, $perPage: Int, $from: Int, $to: Int){
       timeUntilAiring,
       airingAt,
       media{
-        title
+        id
+        title{
+          romaji
+          english
+        }
         coverImage{
           extraLarge
+          large
         }
         bannerImage
         format,

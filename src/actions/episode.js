@@ -115,10 +115,23 @@ async function fetchEpisodeMeta(id, available = false) {
     const res = await fetch(
       `https://api.ani.zip/mappings?anilist_id=${id}`
     );
-const data = await res.json()
-    const episodesArray = Object.values(data?.episodes);
+    
+    if (!res.ok) {
+      logger.error(`[EpisodeMeta] API returned status: ${res.status}`);
+      return [];
+    }
+    
+    const data = await res.json();
+    
+    if (!data?.episodes) {
+      logger.log(`[EpisodeMeta] No episodes data found for ID: ${id}`);
+      return [];
+    }
+    
+    const episodesArray = Object.values(data.episodes);
+    logger.log(`[EpisodeMeta] Fetched metadata for ${episodesArray.length} episodes for ID: ${id}`);
 
-    if (!episodesArray) {
+    if (!episodesArray || episodesArray.length === 0) {
       return [];
     }
     return episodesArray;

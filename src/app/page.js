@@ -2,13 +2,14 @@
 import Animecard from '@/components/CardComponent/Animecards'
 import Herosection from '@/components/home/Herosection'
 import Navbarcomponent from '@/components/navbar/Navbar'
-import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist, UpcomingAnilist, UserWatchingList } from '@/lib/Anilistfunctions'
+import { TrendingAnilist, PopularAnilist, Top100Anilist, SeasonalAnilist, UpcomingAnilist, UserWatchingList, AiringSchedule } from '@/lib/Anilistfunctions'
 import React from 'react'
 import { MotionDiv } from '@/utils/MotionDiv'
 import VerticalList from '@/components/home/VerticalList'
 import ContinueWatching from '@/components/home/ContinueWatching'
 import RecentEpisodes from '@/components/home/RecentEpisodes'
 import UserWatchingListComponent from '@/components/home/UserWatchingList'
+import UpcomingSchedule from '@/components/home/UpcomingSchedule'
 import { getAuthSession } from './api/auth/[...nextauth]/route'
 import { redis } from '@/lib/rediscache'
 // import { getWatchHistory } from '@/lib/EpHistoryfunctions'
@@ -17,31 +18,32 @@ async function getHomePage() {
   try {
     let cachedData;
     if (redis) {
-      cachedData = await redis.get(`homepage_v2`); // Changed key to force refresh
+      cachedData = await redis.get(`homepage_v4`); // Changed key to force refresh without TV_SHORT
       if (cachedData) {
         const parsedData = JSON.parse(cachedData);
         if (Object.keys(parsedData).length === 0) { // Check if data is an empty object
-          await redis.del(`homepage_v2`);
+          await redis.del(`homepage_v4`);
           cachedData = null;
         }
       }
     }
     if (cachedData) {
-      const { herodata, populardata, top100data, seasonaldata, upcomingdata } = JSON.parse(cachedData);
-      return { herodata, populardata, top100data, seasonaldata, upcomingdata };
+      const { herodata, populardata, top100data, seasonaldata, upcomingdata, scheduledata } = JSON.parse(cachedData);
+      return { herodata, populardata, top100data, seasonaldata, upcomingdata, scheduledata };
     } else {
-      const [herodata, populardata, top100data, seasonaldata, upcomingdata] = await Promise.all([
+      const [herodata, populardata, top100data, seasonaldata, upcomingdata, scheduledata] = await Promise.all([
         TrendingAnilist(),
         PopularAnilist(),
         Top100Anilist(),
         SeasonalAnilist(),
-        UpcomingAnilist()
+        UpcomingAnilist(),
+        AiringSchedule()
       ]);
       const cacheTime = 60 * 60 * 2;
       if (redis) {
-        await redis.set(`homepage_v2`, JSON.stringify({ herodata, populardata, top100data, seasonaldata, upcomingdata }), "EX", cacheTime);
+        await redis.set(`homepage_v4`, JSON.stringify({ herodata, populardata, top100data, seasonaldata, upcomingdata, scheduledata }), "EX", cacheTime);
       }
-      return { herodata, populardata, top100data, seasonaldata, upcomingdata };
+      return { herodata, populardata, top100data, seasonaldata, upcomingdata, scheduledata };
     }
   } catch (error) {
     console.error("Error fetching homepage from anilist: ", error);
@@ -51,7 +53,7 @@ async function getHomePage() {
 
 async function Home() {
   const session = await getAuthSession();
-  const { herodata = [], populardata = [], top100data = [], seasonaldata = [], upcomingdata = [] } = await getHomePage();
+  const { herodata = [], populardata = [], top100data = [], seasonaldata = [], upcomingdata = [], scheduledata = [] } = await getHomePage();
   
   // Fetch user's currently watching anime from AniList if logged in
   let userWatchingData = [];
@@ -93,6 +95,13 @@ async function Home() {
         <div
         >
           <Animecard data={populardata} cardid="All Time Popular" />
+        </div>
+        <div
+        >
+          <div className='lg:flex lg:flex-row justify-between lg:gap-20'>
+            <UpcomingSchedule data={scheduledata} id="Upcoming Schedule" startIndex={0} />
+            <UpcomingSchedule data={scheduledata.slice(12, 24)} id="This Week's Releases" startIndex={12} />
+          </div>
         </div>
         <div
         >

@@ -1,5 +1,5 @@
 "use server"
-import { trending, animeinfo, advancedsearch, top100anime, seasonal, popular, userwatchinglist } from "./anilistqueries";
+import { trending, animeinfo, advancedsearch, top100anime, seasonal, popular, userwatchinglist, schedule } from "./anilistqueries";
 
 export const TrendingAnilist = async () => {
     try {
@@ -218,6 +218,84 @@ export const UpcomingAnilist = async () => {
         return mappedData;
     } catch (error) {
         console.error('[UpcomingAnilist] Error fetching upcoming anime:', error);
+        return [];
+    }
+};
+
+export const AiringSchedule = async () => {
+    try {
+        const now = Math.floor(Date.now() / 1000); // Current time in seconds
+        const oneWeekFromNow = now + (7 * 24 * 60 * 60); // One week from now
+
+        console.log(`[AiringSchedule] Fetching schedule from ${new Date(now * 1000).toISOString()} to ${new Date(oneWeekFromNow * 1000).toISOString()}`);
+
+        const response = await fetch('https://graphql.anilist.co', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({
+                query: schedule,
+                variables: {
+                    page: 1,
+                    perPage: 50,
+                    from: now,
+                    to: oneWeekFromNow
+                },
+            }),
+        }, { next: { revalidate: 300 } }); // Cache for 5 minutes
+
+        if (!response.ok) {
+            console.error(`[AiringSchedule] API returned status: ${response.status}`);
+            return [];
+        }
+
+        const data = await response.json();
+        
+        console.log(`[AiringSchedule] Raw response:`, JSON.stringify(data, null, 2));
+        
+        if (!data?.data?.Page?.airingSchedules) {
+            console.log('[AiringSchedule] No airing schedules found in response');
+            return [];
+        }
+
+        console.log(`[AiringSchedule] Found ${data.data.Page.airingSchedules.length} schedules before filtering`);
+
+        // Map and sort by airing time
+        const schedules = data.data.Page.airingSchedules
+            .filter(item => {
+                const isReleasing = item.media?.status === 'RELEASING';
+                const isTVShort = item.media?.format === 'TV_SHORT';
+                if (!isReleasing) {
+                    console.log(`[AiringSchedule] Filtered out: ${item.media?.title?.romaji} - Status: ${item.media?.status}`);
+                }
+                if (isTVShort) {
+                    console.log(`[AiringSchedule] Filtered out TV_SHORT: ${item.media?.title?.romaji}`);
+                }
+                return isReleasing && !isTVShort;
+            })
+            .map(item => ({
+                id: item.media?.id || Math.random(),
+                episode: item.episode,
+                airingAt: item.airingAt,
+                timeUntilAiring: item.timeUntilAiring,
+                title: item.media?.title,
+                coverImage: {
+                    large: item.media?.coverImage?.large || item.media?.coverImage?.extraLarge,
+                    extraLarge: item.media?.coverImage?.extraLarge || item.media?.coverImage?.large,
+                },
+                bannerImage: item.media?.bannerImage,
+                format: item.media?.format,
+                status: item.media?.status,
+                totalEpisodes: item.media?.episodes,
+            }))
+            .sort((a, b) => a.airingAt - b.airingAt); // Sort by airing time (earliest first)
+
+        console.log(`[AiringSchedule] Returning ${schedules.length} schedules after filtering`);
+        return schedules;
+    } catch (error) {
+        console.error('[AiringSchedule] Error fetching airing schedule:', error);
         return [];
     }
 };
