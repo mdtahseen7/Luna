@@ -71,6 +71,12 @@ const UpcomingSchedule = ({ data, id, startIndex = 0 }) => {
       <div className={styles.tophead}>
         <span className={styles.bar}></span><h1 className={styles.headtitle}>{id}</h1>
       </div>
+      <div className={styles.mobiletop}>
+        <div className='flex flex-row gap-[8px] items-center'>
+          <span className={styles.bar}></span>
+          <h1 className={styles.mobiletitle}>{id}</h1>
+        </div>
+      </div>
       {(!data || data.length === 0) ? (
         <div className="text-center py-8 text-gray-400">
           <p>No upcoming episodes</p>

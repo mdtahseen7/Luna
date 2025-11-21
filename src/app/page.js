@@ -96,14 +96,16 @@ async function Home() {
         >
           <Animecard data={populardata} cardid="All Time Popular" />
         </div>
-        <div
+        <div className='mt-8'
         >
           <div className='lg:flex lg:flex-row justify-between lg:gap-20'>
-            <UpcomingSchedule data={scheduledata} id="Upcoming Schedule" startIndex={0} />
+            <div className='mb-8 lg:mb-0'>
+              <UpcomingSchedule data={scheduledata} id="Upcoming Schedule" startIndex={0} />
+            </div>
             <UpcomingSchedule data={scheduledata.slice(12, 24)} id="This Week's Releases" startIndex={12} />
           </div>
         </div>
-        <div
+        <div className='mt-8'
         >
           <div className='lg:flex lg:flex-row justify-between lg:gap-20'>
             <VerticalList data={top100data} mobiledata={seasonaldata} id="Top 100 Anime" />
