@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useTitle } from '@/lib/store';
 import { useStore } from 'zustand';
 
-const UpcomingSchedule = ({ data, id, startIndex = 0 }) => {
+const UpcomingSchedule = ({ data, id, startIndex = 0, className = '' }) => {
   const animetitle = useStore(useTitle, (state) => state.animetitle);
   const [maxWidth, setMaxWidth] = useState(0);
 
@@ -37,11 +37,11 @@ const UpcomingSchedule = ({ data, id, startIndex = 0 }) => {
     if (timeUntilAiring < 86400) {
       const hours = Math.floor(timeUntilAiring / 3600);
       const minutes = Math.floor((timeUntilAiring % 3600) / 60);
-      
+
       if (hours === 0) {
-        return `In ${minutes}m`;
+        return `${minutes}m from now`;
       }
-      return `In ${hours}h ${minutes}m`;
+      return `${hours}h ${minutes}m from now`;
     }
     
     // If airing in less than 7 days
@@ -66,29 +66,35 @@ const UpcomingSchedule = ({ data, id, startIndex = 0 }) => {
       : { backgroundColor: 'transparent', color: colors[index % 3] };
   };
 
+  const isMobile = maxWidth <= 1024;
+
+  const activeData = data;
+  const activeId = id;
+  const activeStartIndex = startIndex;
+
   return (
-    <div className={styles.verticalcard}>
+    <div className={`${styles.verticalcard} ${className}`}>
       <div className={styles.tophead}>
-        <span className={styles.bar}></span><h1 className={styles.headtitle}>{id}</h1>
+        <span className={styles.bar}></span><h1 className={styles.headtitle}>{activeId}</h1>
       </div>
       <div className={styles.mobiletop}>
         <div className='flex flex-row gap-[8px] items-center'>
           <span className={styles.bar}></span>
-          <h1 className={styles.mobiletitle}>{id}</h1>
+          <h1 className={styles.mobiletitle}>{activeId}</h1>
         </div>
       </div>
-      {(!data || data.length === 0) ? (
+      {(!activeData || activeData.length === 0) ? (
         <div className="text-center py-8 text-gray-400">
           <p>No upcoming episodes</p>
         </div>
       ) : (
-        data?.slice(0, 12).map((anime, index) => (
+        activeData?.slice(0, 12).map((anime, index) => (
         <div className={`${styles.vcarditem} group`} key={`${anime.id}-${anime.episode}`}>
           <div
             className={styles.vcardindex}
             style={index < 3 ? getColorStyle(index) : {}}
           >
-            #{startIndex + index + 1}
+            #{activeStartIndex + index + 1}
           </div>
           <div className={styles.vcardcontent}>
             <div className={styles.vcardleft}>
