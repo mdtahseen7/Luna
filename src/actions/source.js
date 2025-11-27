@@ -1,6 +1,67 @@
     "use server"
 import { logger } from "@/utils/logger";
 
+export async function getHentaiTVSources(episodeId, format = 'mp4') {
+    try {
+        const API_URL = process.env.HENTAITV_API_URL;
+        if (!API_URL || !episodeId) {
+            logger.log("[HentaiTV] API URL not configured or episodeId missing");
+            return null;
+        }
+
+        logger.log(`[HentaiTV] Fetching sources for episode: ${episodeId}, format: ${format}`);
+        
+        const response = await fetch(`${API_URL}/api/hen/hentaitv/watch/${episodeId}`);
+        
+        if (!response.ok) {
+            logger.error(`[HentaiTV] Error fetching sources: ${response.status} ${response.statusText}`);
+            return null;
+        }
+
+        const data = await response.json();
+        const sources = data?.data?.results?.sources || [];
+        
+        logger.log(`[HentaiTV] Found ${sources.length} sources`);
+        
+        // Find the requested format (mp4 or iframe)
+        const source = sources.find(s => s.format === format);
+        
+        if (!source) {
+            logger.error(`[HentaiTV] No ${format} source found`);
+            return null;
+        }
+
+        logger.log(`[HentaiTV] Using ${format} source:`, source.src);
+
+        if (format === 'mp4') {
+            // Return MP4 as a regular video source for Vidstack
+            return {
+                sources: [{
+                    url: source.src,
+                    quality: 'default',
+                    type: 'mp4'
+                }],
+                subtitles: [],
+                tracks: []
+            };
+        } else {
+            // Return iframe source
+            return {
+                sources: [{
+                    url: source.src,
+                    quality: 'default',
+                    type: 'iframe'
+                }],
+                subtitles: [],
+                tracks: []
+            };
+        }
+    } catch (error) {
+        logger.error("[HentaiTV] Error fetching sources:", error.message);
+        return null;
+    }
+}
+
 export async function getAnimePaheSources(animeSession, episodeSession) {
     try {
         const API_URL = process.env.ANIMEPAHE_API_URL;
@@ -257,6 +318,22 @@ export async function getAnimeSources(id, provider, epid, epnum, subtype, animeS
             logger.log(`[getAnimeSources] Calling getMegaPlaySources with epid: ${epid}`);
             const data = await getMegaPlaySources(epid);
             logger.log(`[getAnimeSources] getMegaPlaySources returned:`, data);
+            return data;
+        }
+
+        if (provider === "hentaitv-mp4") {
+            // epid is the HentaiTV video ID, format is mp4
+            logger.log(`[getAnimeSources] Calling getHentaiTVSources with epid: ${epid}, format: mp4`);
+            const data = await getHentaiTVSources(epid, 'mp4');
+            logger.log(`[getAnimeSources] getHentaiTVSources (MP4) returned:`, data);
+            return data;
+        }
+
+        if (provider === "hentaitv-iframe") {
+            // epid is the HentaiTV video ID, format is iframe
+            logger.log(`[getAnimeSources] Calling getHentaiTVSources with epid: ${epid}, format: iframe`);
+            const data = await getHentaiTVSources(epid, 'iframe');
+            logger.log(`[getAnimeSources] getHentaiTVSources (Iframe) returned:`, data);
             return data;
         }
 

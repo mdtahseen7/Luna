@@ -228,6 +228,16 @@ function Player({ dataInfo, id, groupedEp, src, session, savedep, subtitles, thu
     Object.assign(playerRef.current ?? {}, { currentTime: skiptimes[1]?.endTime ?? 0 });
   }
 
+  // Detect source type based on URL or explicit type
+  const getSourceType = () => {
+    if (typeof src === 'string') {
+      if (src.endsWith('.mp4') || src.includes('.mp4?')) {
+        return "video/mp4";
+      }
+      return "application/x-mpegurl"; // Default to HLS
+    }
+    return "application/x-mpegurl";
+  };
 
   return (
     <MediaPlayer key={src} ref={playerRef} playsInline aspectRatio={16 / 9} load={settings?.load || 'idle'} muted={settings?.audio || false}
@@ -242,7 +252,7 @@ function Player({ dataInfo, id, groupedEp, src, session, savedep, subtitles, thu
       onCanPlay={onCanPlay}
       src={{
         src: src,
-        type: "application/x-mpegurl",
+        type: getSourceType(),
       }}
       onPlay={onPlay}
       onPause={onPause}

@@ -30,6 +30,11 @@
       type: "genres",
     },
     {
+      name: "Hentai",
+      value: "Hentai",
+      type: "genres",
+    },
+    {
       name: "Horror",
       value: "Horror",
       type: "genres",

@@ -229,6 +229,7 @@ query ($id: Int) {
       status
       duration
       genres
+      isAdult
       source
       type
       seasonYear

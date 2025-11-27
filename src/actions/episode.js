@@ -4,6 +4,41 @@ import { redis } from "@/lib/rediscache";
 import { getMappings } from "./mappings";
 import { logger } from "@/utils/logger";
 
+export async function fetchHentaiTVEpisodes(searchQuery) {
+  try {
+    const API_URL = process.env.HENTAITV_API_URL;
+    if (!API_URL || !searchQuery) {
+      logger.log("[HentaiTV] API URL not configured or search query missing");
+      return [];
+    }
+
+    logger.log(`[HentaiTV] Searching for: ${searchQuery}`);
+    const response = await fetch(`${API_URL}/api/hen/hentaitv/search/${encodeURIComponent(searchQuery)}/1`);
+    
+    if (!response.ok) {
+      logger.error(`[HentaiTV] Error searching: ${response.status} ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data?.data?.results || [];
+    logger.log(`[HentaiTV] Found ${results.length} results`);
+    
+    // Transform HentaiTV search results to episode format
+    return results.map((ep, index) => ({
+      id: ep.id,                    // HentaiTV video ID
+      number: index + 1,            // Sequential numbering
+      title: ep.title,              // Episode title
+      image: ep.image,              // Episode thumbnail
+      episodeId: ep.id,             // Backup ID field
+      views: ep.views,              // View count
+    }));
+  } catch (error) {
+    logger.error("[HentaiTV] Error fetching episodes:", error.message);
+    return [];
+  }
+}
+
 export async function fetchAnimePaheEpisodes(session) {
   try {
     const API_URL = process.env.ANIMEPAHE_API_URL;
@@ -141,21 +176,52 @@ async function fetchEpisodeMeta(id, available = false) {
   }
 }
 
-const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
+const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [], title = '') => {
+  const isHentai = genres?.includes('Hentai');
   logger.log(`\n========== [EPISODES] Fetching for AniList ID: ${id} ==========`);
+  logger.log(`[EPISODES] Title: ${title}`);
+  logger.log(`[EPISODES] Genres:`, genres);
+  logger.log(`[EPISODES] Is Hentai: ${isHentai}`);
   let mappings;
   let subEpisodes = [];
   let dubEpisodes = [];
   let allepisodes = [];
 
-  if (id) {
-    mappings = await getMappings(id);
-    logger.log(`[EPISODES] Mappings received:`, mappings);
-  }
+  // For hentai content, fetch from HentaiTV instead of regular providers
+  if (isHentai) {
+    logger.log(`[EPISODES] Detected hentai content, fetching from HentaiTV`);
+    const hentaiEpisodes = await fetchHentaiTVEpisodes(title);
+    
+    if (hentaiEpisodes?.length > 0) {
+      // Add two providers: MP4 (Server 1) and Iframe (Server 2)
+      allepisodes.push(
+        {
+          episodes: hentaiEpisodes,
+          providerId: "hentaitv-mp4",
+          provider: "HentaiTV MP4"
+        },
+        {
+          episodes: hentaiEpisodes,
+          providerId: "hentaitv-iframe",
+          provider: "HentaiTV Iframe"
+        }
+      );
+      logger.log(`[EPISODES] Added HentaiTV providers with ${hentaiEpisodes.length} episodes`);
+    }
+    
+    // Skip mappings and regular provider fetching for hentai
+    logger.log(`[EPISODES] Total providers: ${allepisodes.length}`);
+    logger.log(`[EPISODES] Provider IDs:`, allepisodes.map(p => p.providerId));
+  } else {
+    // Regular anime flow
+    if (id) {
+      mappings = await getMappings(id);
+      logger.log(`[EPISODES] Mappings received:`, mappings);
+    }
 
-  if (mappings) {
-    // Fetch episodes in parallel for better performance
-    logger.log(`[EPISODES] Starting parallel fetch for all providers`);
+    if (mappings) {
+      // Fetch episodes in parallel for better performance
+      logger.log(`[EPISODES] Starting parallel fetch for all providers`);
     
     const fetchPromises = [];
     
@@ -243,9 +309,11 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
       }
     });
     
-    logger.log(`[EPISODES] Total providers: ${allepisodes.length}`);
-    logger.log(`[EPISODES] Provider IDs:`, allepisodes.map(p => p.providerId));
-  } 
+      logger.log(`[EPISODES] Total providers: ${allepisodes.length}`);
+      logger.log(`[EPISODES] Provider IDs:`, allepisodes.map(p => p.providerId));
+    }
+  }
+  
   const cover = await fetchEpisodeMeta(id, !refresh)
 
   // Check if redis is available
@@ -286,8 +354,9 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh) => {
   }
 };
 
-export const getEpisodes = async (id, status, refresh = false) => {
-  logger.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh} ==========`);
+export const getEpisodes = async (id, status, refresh = false, genres = [], title = '') => {
+  const isHentai = genres?.includes('Hentai');
+  logger.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh}, genres: ${genres}, isHentai: ${isHentai} ==========`);
   let cacheTime = null;
   if (status) {
     cacheTime = 60 * 60 * 3;
@@ -321,7 +390,7 @@ export const getEpisodes = async (id, status, refresh = false) => {
       }
       let data;
       if (refresh) {
-        data = await fetchAndCacheData(id, meta, redis, cacheTime, refresh);
+        data = await fetchAndCacheData(id, meta, redis, cacheTime, refresh, genres, title);
       }
       if (data?.length > 0) {
         logger.log("deleted cache");
@@ -354,7 +423,9 @@ export const getEpisodes = async (id, status, refresh = false) => {
       meta,
       redis,
       cacheTime,
-      !refresh
+      !refresh,
+      genres,
+      title
     );
     return fetchdata;
   }

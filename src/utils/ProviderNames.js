@@ -4,6 +4,8 @@ export const PROVIDER_DISPLAY_NAMES = {
   hianime: "Server 2",
   animepahe: "Server 3",
   megaplay: "Server 4",
+  "hentaitv-mp4": "Server 1",
+  "hentaitv-iframe": "Server 2",
 };
 
 // Get display name for a provider ID

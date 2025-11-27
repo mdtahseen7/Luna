@@ -51,7 +51,7 @@ function Episodesection({ data, id, progress, setUrl }) {
   useEffect(() => {
     const fetchepisodes = async () => {
       try {
-        const response = await getEpisodes(id, data?.status === "RELEASING", false);
+        const response = await getEpisodes(id, data?.status === "RELEASING", false, data?.genres, data?.title?.romaji || data?.title?.english);
         setEpisodeData(response);
         if (response) {
           const {suboptions, dubLength} = ProvidersMap(response, defaultProvider, setdefaultProvider);
@@ -67,7 +67,7 @@ function Episodesection({ data, id, progress, setUrl }) {
     if (data?.type !== 'MANGA' && data?.status !== 'NOT_YET_RELEASED') {
       fetchepisodes();
     }
-  }, [data?.id])
+  }, [data?.id, data?.type, data?.status, data?.genres, data?.title?.romaji, data?.title?.english, id, defaultProvider])
 
   const handleProviderChange = (event) => {
     setdefaultProvider(event.target.value);
@@ -116,7 +116,7 @@ function Episodesection({ data, id, progress, setUrl }) {
   const refreshEpisodes = async () => {
     setloading(true);
     try {
-      const response = await getEpisodes(id, data?.status === "RELEASING", true);
+      const response = await getEpisodes(id, data?.status === "RELEASING", true, data?.genres, data?.title?.romaji || data?.title?.english);
       setEpisodeData(response);
       if (response) {
         const {suboptions, dubLength} = ProvidersMap(response, defaultProvider, setdefaultProvider);

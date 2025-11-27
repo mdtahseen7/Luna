@@ -76,13 +76,13 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     return;
                 }
                 
-                // Check if sources are iframe type (AnimePahe/MegaPlay) or m3u8 (Kaido/HiAnime with Vidstack)
+                // Check if sources are iframe, mp4, or m3u8
                 const firstSource = response?.sources?.[0];
                 logger.log("[PlayerComponent] First source:", firstSource);
                 logger.log("[PlayerComponent] Provider:", currentProvider);
                 
-                if ((currentProvider === 'animepahe' || currentProvider === 'megaplay') && firstSource?.type === 'iframe') {
-                    // AnimePahe and MegaPlay use iframe players
+                if ((currentProvider === 'animepahe' || currentProvider === 'megaplay' || currentProvider === 'hentaitv-iframe') && firstSource?.type === 'iframe') {
+                    // AnimePahe, MegaPlay, and HentaiTV Iframe use iframe players
                     let iframeUrl = firstSource.url;
                     
                     // Add autoplay parameter to the URL if not already present
@@ -93,6 +93,11 @@ function PlayerComponent({ id, epId, provider, epNum, subdub, data, session, sav
                     
                     logger.log(`[PlayerComponent] Using ${currentProvider} iframe source with autoplay:`, iframeUrl);
                     setSrc({ type: 'iframe', url: iframeUrl });
+                } else if (currentProvider === 'hentaitv-mp4' && firstSource?.type === 'mp4') {
+                    // HentaiTV MP4 uses Vidstack player with direct MP4 URL
+                    const mp4Source = firstSource.url;
+                    logger.log(`[PlayerComponent] Using ${currentProvider} MP4 with Vidstack:`, mp4Source);
+                    setSrc(mp4Source);
                 } else if (currentProvider === 'kaido' || currentProvider === 'hianime') {
                     // Kaido and HiAnime use Vidstack player with proxied m3u8
                     const m3u8Source = firstSource?.url || firstSource;

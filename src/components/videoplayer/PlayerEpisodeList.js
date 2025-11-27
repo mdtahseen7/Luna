@@ -67,7 +67,7 @@ function PlayerEpisodeList({ id, data, onprovider, initialProvider, setwatchepda
       try {
         logger.log(`\n========== [PlayerEpisodeList] Fetching episodes for ID: ${id} ==========`);
         // Use cache for faster loading (only bypass for releasing anime)
-        const response = await getEpisodes(id, data?.status === "RELEASING", false);
+        const response = await getEpisodes(id, data?.status === "RELEASING", false, data?.genres, data?.title?.romaji || data?.title?.english);
         logger.log(`[PlayerEpisodeList] Received response:`, response);
         logger.log(`[PlayerEpisodeList] Number of providers:`, response?.length || 0);
         if (response && response.length > 0) {
@@ -108,7 +108,7 @@ function PlayerEpisodeList({ id, data, onprovider, initialProvider, setwatchepda
       }
     };
     fetchepisodes();
-  }, [id]);
+  }, [id, data?.status, data?.genres, data?.title?.romaji, data?.title?.english]);
 
   const handleProviderChange = (provider, subvalue = "sub") => {
     setdefaultProvider(provider);
@@ -162,7 +162,7 @@ function PlayerEpisodeList({ id, data, onprovider, initialProvider, setwatchepda
   const refreshEpisodes = async () => {
     setRefreshLoading(true);
     try {
-      const response = await getEpisodes(id, data.status === "RELEASING", true);
+      const response = await getEpisodes(id, data.status === "RELEASING", true, data?.genres, data?.title?.romaji || data?.title?.english);
       setEpisodeData(response);
       if (response) {
         const { suboptions, dubLength } = ProvidersMap(response);
