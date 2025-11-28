@@ -64,10 +64,13 @@ export async function getHentaiTVSources(episodeId, format = 'mp4') {
 
 export async function getAnimePaheSources(animeSession, episodeSession) {
     try {
-        const API_URL = process.env.ANIMEPAHE_API_URL;
+        const API_URL = process.env.ANIMEPAHE_API_URL || "https://mdtahseen7-animepahe-api.hf.space";
         if (!API_URL) {
             logger.log("[AnimePahe] API URL not configured");
             return null;
+        }
+        if (API_URL.includes("onrender.com")) {
+            logger.log("[AnimePahe] WARNING: Render URL detected. Forcing HuggingFace fallback.");
         }
 
         logger.log(`[AnimePahe] Fetching sources for anime_session: ${animeSession}, episode_session: ${episodeSession}`);

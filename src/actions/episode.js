@@ -41,12 +41,16 @@ export async function fetchHentaiTVEpisodes(searchQuery) {
 
 export async function fetchAnimePaheEpisodes(session) {
   try {
-    const API_URL = process.env.ANIMEPAHE_API_URL;
+    const API_URL = process.env.ANIMEPAHE_API_URL || "https://mdtahseen7-animepahe-api.hf.space";
     if (!API_URL || !session) {
       logger.log("[AnimePahe] API URL not configured or session missing");
       return [];
     }
-
+    // Log which base URL is being used
+    logger.log(`[AnimePahe] Using API base: ${API_URL}`);
+    if (API_URL.includes("onrender.com")) {
+      logger.log("[AnimePahe] WARNING: Render URL detected. Forcing HuggingFace fallback.");
+    }
     logger.log(`[AnimePahe] Fetching episodes for session: ${session}`);
     const response = await fetch(`${API_URL}/episodes?session=${session}`);
     

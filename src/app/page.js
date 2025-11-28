@@ -70,6 +70,7 @@ async function Home() {
       <Navbarcomponent home={true} />
       <Herosection data={herodata} />
       <div className='sm:max-w-[97%] md:max-w-[95%] lg:max-w-[90%] xl:max-w-[85%] mx-auto flex flex-col md:gap-11 sm:gap-7 gap-5 mt-8'>
+        {/* Currently Watching section */}
         {/* {session?.user && (
           <div>
             <ContinueWatching session={session} />

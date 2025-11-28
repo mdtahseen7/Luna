@@ -5,6 +5,13 @@ import { findSimilarTitles } from '@/lib/stringSimilarity';
 
 export async function getMappings(anilistId) {
     console.log(`\n========== [MAPPINGS] Starting for AniList ID: ${anilistId} ==========`);
+    // Always print the AnimePahe base URL to verify env resolution
+    try {
+        const apBase = process.env.ANIMEPAHE_API_URL;
+        console.log(`[MAPPINGS] AnimePahe API base: ${apBase || 'undefined'}`);
+    } catch (e) {
+        console.log(`[MAPPINGS] AnimePahe API base: ERROR reading env`, e?.message);
+    }
     const data = await getInfo(anilistId);
     let animepaheres, kaidores, hianimeres;
     if (!data) {
@@ -65,10 +72,15 @@ async function getInfo(id) {
 
 async function mapAnimePahe(title) {
     try {
-        const API_URL = process.env.ANIMEPAHE_API_URL;
+        const API_URL = process.env.ANIMEPAHE_API_URL || "https://mdtahseen7-animepahe-api.hf.space";
         if (!API_URL) {
             console.log("AnimePahe API URL not configured");
             return null;
+        }
+        // Log which base URL is being used for AnimePahe
+        console.log(`[AnimePahe] Using API base: ${API_URL}`);
+        if (API_URL.includes("onrender.com")) {
+            console.log("[AnimePahe] WARNING: Render URL detected. Forcing HuggingFace fallback.");
         }
 
         console.log(`[AnimePahe] Attempting to map anime: ${title?.romaji || title?.english}`);
@@ -93,7 +105,16 @@ async function mapAnimePahe(title) {
                     continue;
                 }
                 
-                const results = await response.json();
+                const raw = await response.json();
+                // Support multiple response shapes: array, {results: []}, {data: {results: []}}
+                const results = Array.isArray(raw)
+                  ? raw
+                  : Array.isArray(raw?.results)
+                    ? raw.results
+                    : Array.isArray(raw?.data?.results)
+                      ? raw.data.results
+                      : [];
+                console.log(`[AnimePahe] Search response shape:`, Object.keys(raw || {}).join(','));
                 console.log(`[AnimePahe] Found ${results?.length || 0} results`);
                 
                 if (results && results.length > 0) {
@@ -101,7 +122,7 @@ async function mapAnimePahe(title) {
                     const matches = findSimilarTitles(query, results);
                     if (matches && matches.length > 0) {
                         const topMatch = matches[0];
-                        console.log(`[AnimePahe] Top match: ${topMatch.title} (similarity: ${topMatch.similarity})`);
+                        console.log(`[AnimePahe] Top match: ${topMatch?.title || topMatch?.name} (similarity: ${topMatch.similarity})`);
                         if (topMatch.similarity > highestSimilarity) {
                             highestSimilarity = topMatch.similarity;
                             bestMatch = topMatch;
@@ -115,12 +136,12 @@ async function mapAnimePahe(title) {
         }
 
         // Return session token if we found a good match
-        if (bestMatch && bestMatch.session) {
+        if (bestMatch && (bestMatch.session || bestMatch.anime_session)) {
             console.log(`[AnimePahe] Successfully mapped to session: ${bestMatch.session}`);
             return {
-                session: bestMatch.session,
-                title: bestMatch.title,
-                id: bestMatch.id
+                session: bestMatch.session || bestMatch.anime_session,
+                title: bestMatch.title || bestMatch.name,
+                id: bestMatch.id || bestMatch.slug || null
             };
         }
 
