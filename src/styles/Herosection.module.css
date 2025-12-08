@@ -52,9 +52,9 @@
 .heroinfo {
     position: absolute;
     width: 50%;
-    bottom: 70px;
+    bottom: 50px;
     /* left: 140px; */
-    left: 7%;
+    left: 90px;
 }
 
 .herotitle {

@@ -11,7 +11,22 @@
     font-family: "28 Days Later";
 }
 
-/* 
+/* Main content layout with sidebar */
+.main-content {
+    margin-left: 68px;
+    margin-right: 0;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+    width: calc(100% - 68px);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        margin-bottom: 0;
+        width: 100%;
+    }
+}/* 
 html {
     scroll-behavior: smooth !important;
     letter-spacing:0.05rem;
@@ -31,7 +46,7 @@ html {
 }
 
 .recommendationglobal{
-    max-width: 85%;
+    max-width: 94%;
     margin: 20px auto 0 auto;
 }
 

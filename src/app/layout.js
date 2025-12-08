@@ -12,6 +12,7 @@ import { Toaster } from 'sonner'
 import Changelogs from '../components/Changelogs';
 import FloatingButton from '@/components/FloatingButton';
 import { AuthProvider } from './SessionProvider';
+import Sidebar from '@/components/sidebar/Sidebar';
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -103,7 +104,10 @@ export default async function RootLayout({ children }) {
       <body className={poppins.className}>
         <AuthProvider session={session}>
           <NextUiProvider>
-            {children}
+            <Sidebar />
+            <div className="main-content">
+              {children}
+            </div>
           </NextUiProvider>
         </AuthProvider>
         {/* <NextTopLoader color="#CA1313" className="z-[99999]" /> */}

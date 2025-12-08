@@ -8,7 +8,7 @@
     align-items: center;
     color: white;
     height: 64px;
-    padding: 0 6.8%;
+    padding: 0 2%;
     margin: auto;
     background: transparent;
     position: fixed;
@@ -19,13 +19,19 @@
     transition:all 300ms ease-in-out;
 }
 
+@media (max-width: 768px) {
+    .homenavbar {
+        left: 0;
+    }
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
     height: 60px;
-    padding: 0 3%;
+    padding: 0 2%;
     margin: auto;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
@@ -35,6 +41,12 @@
     right: 0;
     z-index: 50;
     transition:all 300ms ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        left: 0;
+    }
 }
 
 .navbarscroll {

@@ -69,7 +69,7 @@ async function Home() {
     <div>
       <Navbarcomponent home={true} />
       <Herosection data={herodata} />
-      <div className='sm:max-w-[97%] md:max-w-[95%] lg:max-w-[90%] xl:max-w-[85%] mx-auto flex flex-col md:gap-11 sm:gap-7 gap-5 mt-8'>
+      <div className='sm:max-w-[99%] md:max-w-[98%] lg:max-w-[97%] xl:max-w-[96%] mx-auto flex flex-col md:gap-11 sm:gap-7 gap-5 mt-8'>
         {/* Currently Watching section */}
         {/* {session?.user && (
           <div>

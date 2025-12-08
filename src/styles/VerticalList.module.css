@@ -49,11 +49,12 @@
 
 .vcardcontent {
   display: flex;
-  background-color: #18181b;
+  background-color: #000000;
   padding: 0.4rem 0.5rem;
   margin: 6px 10px;
   justify-content: space-between;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   width: 100%;
 }
 

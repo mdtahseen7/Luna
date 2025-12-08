@@ -26,8 +26,8 @@
   background-color: white;
   border: none;
   color: black;
-  padding: 10px 15px;
-  bottom: 9%;
+  padding: 10px 25px;
+  bottom: -26%;
   right: 3%;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -37,7 +37,7 @@
 .detailsinfo {
   position: absolute;
   bottom: -35%;
-  left: 8%;
+  left: 4%;
   display: flex;
 }
 
@@ -88,7 +88,7 @@
   display: flex;
   width: max-content;
   color: black;
-  padding: 8px 17px;
+  padding: 8px 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   font-weight: 500;

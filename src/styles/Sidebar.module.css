@@ -1,0 +1,290 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 68px;
+  background: #000000;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  transition: all 0.3s ease;
+  box-shadow: 8px 0 24px rgba(148, 27, 34, 0.15);
+}
+
+.navMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* shift main icons slightly downward on desktop */
+  padding-top: 20px;
+}
+
+.navBottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* keep bottom icons a bit above the edge on desktop */
+  padding-bottom: 28px;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.navItem {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  color: #a0a0a0;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  background: transparent;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.navLink.active {
+  background: rgba(202, 19, 19, 0.12);
+  color: #CA1313;
+  position: relative;
+}
+
+.navLink.active::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: #CA1313;
+  border-radius: 0 4px 4px 0;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  transition: all 0.3s ease;
+}
+
+.navLink:hover .icon {
+  transform: scale(1.1);
+}
+
+.tooltip {
+  position: absolute;
+  left: 70px;
+  background: #2a2a2f;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: #2a2a2f;
+}
+
+.tooltipVisible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Mobile label - hidden on desktop */
+.mobileLabel {
+  display: none;
+}
+
+/* Only render on mobile (hidden on desktop) */
+.mobileOnly {
+  display: none;
+}
+
+/* Hide specific icons on mobile */
+.hideOnMobile {
+  display: flex;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  /* Hide tooltips on mobile */
+  .tooltip {
+    display: none !important;
+  }
+
+  .sidebar {
+    bottom: 0;
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 84px;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0;
+    background: #000000; /* pure black */
+    z-index: 100;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  /* Hide Popular and Notifications on mobile */
+  .hideOnMobile {
+    display: none !important;
+  }
+
+  /* Show mobile-only items */
+  .mobileOnly {
+    display: flex !important;
+  }
+
+  /* reset desktop shifts on mobile so layout stays tight */
+  .navMain {
+    padding-top: 0;
+    flex: 1;
+    flex-direction: row;
+  }
+
+  .navBottom {
+    padding-bottom: 0;
+    display: none;
+  }
+
+  .navList {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+    gap: 0;
+  }
+
+  .navItem {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .navLink {
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 20px 12px 20px;
+    border-radius: 14px;
+    position: relative;
+    color: #c8c8d0;
+  }
+
+  .navLink.active::before {
+    display: none;
+  }
+
+  .navLink.active {
+    background: rgba(202, 19, 19, 0.12);
+    color: #CA1313;
+    padding: 10px 16px 10px 16px;
+  }
+
+  .mobileLabel {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .navLink:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .iconWrapper {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Hide on very small screens */
+@media (max-width: 440px) {
+  .sidebar {
+    height: 76px;
+  }
+
+  .navLink {
+    padding: 8px 6px 6px 6px;
+  }
+
+  .mobileLabel {
+    font-size: 11px;
+  }
+
+  .iconWrapper {
+    width: 22px;
+    height: 22px;
+  }
+
+  .icon {
+    width: 22px;
+    height: 22px;
+  }
+}

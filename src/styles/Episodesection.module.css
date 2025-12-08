@@ -1,5 +1,5 @@
 .episodesection{
-    max-width: 85%;
+    max-width: 94%;
     margin: auto;
 }
 .eptopsection{
@@ -12,7 +12,7 @@
 .epleft{
     display: flex;
     align-items: center;
-    /* margin-left: 5px; */
+    margin-left: 0px;
 }
 .epright{
     display: flex;
