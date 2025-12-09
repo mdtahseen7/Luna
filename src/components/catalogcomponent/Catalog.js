@@ -6,7 +6,7 @@ import { seasonOptions, genreOptions, tagsOptions, formatOptions, yearOptions, s
 import { Combobox, Transition } from '@headlessui/react'
 import Searchcard from './Searchcard';
 
-function Catalog({ searchParams }) {
+function Catalog({ searchParams, hideFilters = false }) {
     const { year, season, format, genre, search, sortby } = searchParams;
     const [selectedYear, setSelectedYear] = useState(null);
     const [seasonvalue, setSeasonvalue] = useState(null);
@@ -85,6 +85,7 @@ function Catalog({ searchParams }) {
     return (
         <div className={styles.catalog}>
             {/* <h2 className={styles.catalogtitle}>Catalog</h2> */}
+            {!hideFilters && (
             <div className={styles.catalogtop}>
                 <div className={styles.searchmobil}>
                     <div className={styles.search}>
@@ -319,7 +320,9 @@ function Catalog({ searchParams }) {
                     </div>
                 </>}
             </div>
+            )}
             <div className={styles.catalogbottom}>
+                {!hideFilters && (
                 <div className={styles.catalogleft}>
                     <div className={styles.accordion}>
                         <Accordion isCompact variant="splitted" defaultExpandedKeys={["2"]} >
@@ -372,7 +375,8 @@ function Catalog({ searchParams }) {
                         </Accordion>
                     </div>
                 </div>
-                <div className={styles.catalogright}>
+                )}
+                <div className={hideFilters ? styles.catalogrightfull : styles.catalogright}>
                     <Searchcard searchvalue={searchvalue} seasonvalue={seasonvalue}
                         selectedYear={selectedYear} formatvalue={formatvalue}
                         sortbyvalue={sortbyvalue} genrevalue={genrevalue} />

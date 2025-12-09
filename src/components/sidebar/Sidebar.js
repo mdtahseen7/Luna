@@ -9,7 +9,8 @@ import {
   ScheduleIcon, 
   SettingsIcon,
   SpotlightIcon,
-  NotificationIcon
+  NotificationIcon,
+  TrendingIcon
 } from '@/lib/SvgIcons';
 
 export default function Sidebar() {
@@ -33,9 +34,9 @@ export default function Sidebar() {
     },
     {
       id: 'popular',
-      label: 'Popular',
-      icon: SpotlightIcon,
-      href: '/anime/popular',
+      label: 'Trending',
+      icon: TrendingIcon,
+      href: '/anime/trending',
       showOnMobile: false,
     },
     {

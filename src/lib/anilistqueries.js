@@ -744,6 +744,7 @@ query($page: Int, $perPage: Int, $from: Int, $to: Int){
         format,
         status,
         episodes
+        description
       }
     }
   }

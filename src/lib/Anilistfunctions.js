@@ -388,3 +388,31 @@ export const UserWatchingList = async (token, userId) => {
         return [];
     }
 };
+
+export const getSchedule = async (page = 1, perPage = 50, from, to) => {
+    try {
+        const response = await fetch('https://graphql.anilist.co', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+            body: JSON.stringify({
+                query: schedule,
+                variables: {
+                    page,
+                    perPage,
+                    from,
+                    to,
+                },
+            }),
+        }, { next: { revalidate: 3600 } });
+
+        const data = await response.json();
+        return data.data.Page.airingSchedules;
+    } catch (error) {
+        console.error('Error fetching schedule data from AniList:', error);
+        return [];
+    }
+};
+
