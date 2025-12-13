@@ -53,14 +53,16 @@ Experience ad-free anime streaming with seamless AniList integration for progres
 
 ## Environment Variables
 
+##Kenjitsu-api
+Huge Thanks to Kenjitsu-api, it played a major role in making this site up, you can access it here - [Kenjitsu-api](https://github.com/middlegear/kenjitsu)
+
 Luna requires certain environment variables to function properly. Create a `.env.local` file in the root directory:
 
 ### Required Variables
 
 ```env
 
-##Kenjitsu-api
-Huge Thanks to Kenjitsu-api, it played a major role in making this site up, you can access it here - [Kenjitsu-api](https://github.com/middlegear/kenjitsu)
+
 
 ## MongoDB (Required)
 MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/luna?retryWrites=true&w=majority"
