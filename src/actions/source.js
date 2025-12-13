@@ -1,5 +1,6 @@
-    "use server"
+"use server"
 import { logger } from "@/utils/logger";
+import proxyManager from "@/utils/ProxyManager";
 
 export async function getHentaiTVSources(episodeId, format = 'mp4') {
     try {
@@ -129,14 +130,13 @@ export async function getKaidoSources(episodeId, version = 'sub', server = 'vidc
         logger.log(`[Kaido] Found ${result?.data?.sources?.length || 0} sources`);
         
         // Format sources for Vidstack player with proxy support
-        const PROXY_URI = process.env.NEXT_PUBLIC_PROXY_URI;
-        logger.log(`[Kaido] Proxy URI:`, PROXY_URI);
+        logger.log(`[Kaido] Using proxy manager with ${proxyManager.getAllProxies().length} proxies`);
         
         const formattedSources = result.data?.sources?.map(source => {
-            // Use proxy for m3u8 URLs to avoid CORS
-            // PROXY_URI should already include the full path like: https://proxy.com/m3u8-proxy?url=
-            const url = PROXY_URI 
-                ? `${PROXY_URI}${encodeURIComponent(source.url)}`
+            // Use proxy rotation for m3u8 URLs to avoid CORS
+            // Each source gets a random proxy for load balancing
+            const url = proxyManager.hasProxies()
+                ? proxyManager.getProxiedUrl(source.url, 'random')
                 : source.url;
             logger.log(`[Kaido] Original:`, source.url);
             logger.log(`[Kaido] Proxied:`, url);
@@ -198,13 +198,12 @@ export async function getHiAnimeSources(episodeId, version = 'sub', server = 'hd
         logger.log(`[HiAnime] Found ${result?.data?.sources?.length || 0} sources`);
         
         // Format sources for Vidstack player with proxy support
-        const PROXY_URI = process.env.NEXT_PUBLIC_PROXY_URI;
-        logger.log(`[HiAnime] Proxy URI:`, PROXY_URI);
+        logger.log(`[HiAnime] Using proxy manager with ${proxyManager.getAllProxies().length} proxies`);
         
         const formattedSources = result.data?.sources?.map(source => {
-            // Use proxy for m3u8 URLs to avoid CORS
-            const url = PROXY_URI && source.isM3u8
-                ? `${PROXY_URI}${encodeURIComponent(source.url)}`
+            // Use proxy rotation for m3u8 URLs to avoid CORS
+            const url = proxyManager.hasProxies() && source.isM3u8
+                ? proxyManager.getProxiedUrl(source.url, 'random')
                 : source.url;
             logger.log(`[HiAnime] Original:`, source.url);
             logger.log(`[HiAnime] Proxied:`, url);

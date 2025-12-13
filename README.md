@@ -1,158 +1,258 @@
 <div align="center">
-  <a href="https://Aniplaynow.live" target="_blank">
-    <img src="https://github.com/Noname968/airin/blob/c39875dc6e1bc2db9d8371574a9ab3ed95ff3b93/public/icon-512x512.png" alt="Logo" width="140" height="140">
+  <a href="https://airin-revived.vercel.app" target="_blank">
+    <img src="https://raw.githubusercontent.com/mdtahseen7/Luna/main/public/icon-512x512.png" alt="Luna Logo" width="140" height="140">
   </a>
 
-  <h2 align="center">Airin</h3>
+  <h2 align="center">Luna</h3>
 
   <p align="center">
-    An open-source Anime streaming site built with Nextjs 14
+    An open-source anime streaming platform built with Next.js 14
   </p>
 </div>
 
-
 # About the Project
 
-Enjoy ad-free streaming and seamless progress tracking with AniList integration, powered by Consumet API and Anify. Built with Next.js 14, Nextui, MongoDB, and Redis, our platform offers a smooth experience. Look out for hidden features - every clickable item may hold a different surprise.
-
+Experience ad-free anime streaming with seamless AniList integration for progress tracking. Powered by modern APIs including Consumet and Anify, Luna delivers a smooth viewing experience. Built with Next.js 14, NextUI, MongoDB, and Redis for optimal performance.
 
 ## Features
 
-- No ads
-- Fast page load
-- PWA supported
-- Responsive on all devices
-- Multi provider support
-- Recommendations
-- Player Features
-  - Autoplay next episode
-  - Skip op/ed button
-  - Autoplay Video
+- 🚫 **Ad-Free Experience** - No interruptions, pure anime
+- ⚡ **Lightning Fast** - Optimized page loads and streaming
+- 📱 **PWA Support** - Install as an app on any device
+- 📐 **Fully Responsive** - Perfect experience on all screen sizes
+- 🎯 **Multi-Provider Support** - Multiple sources for reliability
+- 🎬 **Smart Recommendations** - Discover new anime
+- ▶️ **Advanced Player Features**
+  - Auto-play next episode
+  - Skip opening/ending buttons
+  - Auto-play on load
+  - Multiple quality options
+- 🔄 **AniList Integration** - Track your progress automatically
+- 📅 **Schedule Page** - See upcoming anime releases
+- 🔥 **Trending Page** - Discover what's popular
+- 🎨 **Purple Theme** - Modern, beautiful UI design
 
-
-<!-- ROADMAP -->
 ## Roadmap
 
-- [X] Add Changelog
+- [x] Add Changelog
+- [x] AniList episode tracking
+- [x] Profile page
+- [x] Schedule page
+- [x] Trending page
+- [x] Multiple proxy support
+- [x] Notification system
 - [ ] Download episodes
-- [ ] Add Comment section
-- [ ] Create separate page for anilist users
-    - [ ] To view their progress
-    - [ ] Check all their details imported from anilist
-- [ ] Add Scene Search in catalog page
-- [X] Add Anilist episode tracking
-- [ ] Complete Watch Page
-- [X] Add Profile page.
-- [ ] Add Manga Reading Support
-    - [ ] Comick
-    - [ ] Mangadex
-    - [ ] And some more
-
-See the [open issues](https://github.com/Noname968/airin/issues) for a full list of proposed features (and known issues).
-
+- [ ] Comment section
+- [ ] Enhanced AniList user page
+  - [ ] Detailed progress view
+  - [ ] Full AniList stats import
+- [ ] Scene search in catalog
+- [ ] Manga reading support
+  - [ ] Comick integration
+  - [ ] MangaDex integration
 
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your .env file
+Luna requires certain environment variables to function properly. Create a `.env.local` file in the root directory:
 
+### Required Variables
+
+```env
+
+##Kenjitsu-api
+Huge Thanks to Kenjitsu-api, it played a major role in making this site up, you can access it here - [Kenjitsu-api](https://github.com/middlegear/kenjitsu)
+
+## MongoDB (Required)
+MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/luna?retryWrites=true&w=majority"
+# Get free MongoDB Atlas: https://www.mongodb.com/cloud/atlas
+
+## NextAuth Configuration (Required)
+NEXTAUTH_SECRET="your-secret-here"
+# Generate with: openssl rand -base64 32
+# Or online: https://generate-secret.vercel.app/32
+
+NEXTAUTH_URL="http://localhost:3000"
+# For development: http://localhost:3000
+# For production: https://your-domain.com
+
+## AniList OAuth (Required for user features)
+GRAPHQL_ENDPOINT="https://graphql.anilist.co"
+ANILIST_CLIENT_ID="your-client-id"
+ANILIST_CLIENT_SECRET="your-client-secret"
+# Get credentials: https://anilist.co/settings/developer
+# Redirect URL: https://your-domain.com/api/auth/callback/AniListProvider
 ```
-## Redis
-# If you don't want to use redis leave it empty or comment it.
-REDIS_URL="get redis from upstash, litegix or aiven. They offer free tier."
 
-## AniList
-GRAPHQL_ENDPOINT=https://graphql.anilist.co
-ANILIST_CLIENT_ID="get your id from here https://anilist.co/settings/developer"
-ANILIST_CLIENT_SECRET="get your secret from here https://anilist.co/settings/developer"
+### Optional Variables
 
-## NextAuth Details
-NEXTAUTH_SECRET='run this command in your terminal (openssl rand -base64 32)'
-NEXTAUTH_URL="for development use http://localhost:3000/ and for production use your domain url"
+```env
+## Redis (Highly Recommended for caching)
+REDIS_URL="rediss://default:password@host:port"
+# Free providers:
+# - Upstash: https://upstash.com/
+# - Aiven: https://aiven.io/
+# - Redis Cloud: https://redis.com/try-free/
 
-## NextJS
-NEXT_PUBLIC_PROXY_URI="Use a proxy if u wish, not mandatory"
+## Proxy Configuration (Optional - for bypassing geo-restrictions)
+NEXT_PUBLIC_PROXY_URI="https://your-proxy-url.com"
+# Use if streaming sources are blocked in your region
+# Can use multiple proxies (comma-separated)
 
-## Optional (Will work without this)
-ZORO_URI="host your own API from this repo https://github.com/ghoshRitesh12/aniwatch-api. Don't put / at the end of the url."
-
-## MongoDB
-MONGODB_URI="Your Mongodb connection String"
-
-## In AniList Developer console add redirect url :
-# https://{your-domain}/api/auth/callback/AniListProvider
-
+## Custom API Endpoints (Optional)
+ZORO_URI="https://your-aniwatch-api.com"
+# Host your own: https://github.com/ghoshRitesh12/aniwatch-api
+# Provides additional anime sources
+# Don't add trailing slash
 ```
 
+### Setting Up AniList OAuth
 
-## Run Locally
+1. Go to [AniList Developer Settings](https://anilist.co/settings/developer)
+2. Create a new Client
+3. Set the Redirect URL to: `https://your-domain.com/api/auth/callback/AniListProvider`
+   - For local development: `http://localhost:3000/api/auth/callback/AniListProvider`
+4. Copy the Client ID and Client Secret to your `.env.local`
 
-Clone the project
+### Environment Variable Tips
+
+- Never commit `.env.local` to version control
+- Use different values for development and production
+- Redis significantly improves performance (caches API responses)
+- Without Redis, the app will work but make more API calls
+- Multiple proxies can be configured for better reliability
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn or bun
+- MongoDB database (local or Atlas)
+- (Optional) Redis instance
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/mdtahseen7/airin-revived.git
+   cd airin-revived
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   bun install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your values
+   ```
+
+4. **Generate favicons and icons (optional)**
+   ```bash
+   npm run generate-icons
+   ```
+
+5. **Run development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open in browser**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Production Build
+
 ```bash
-  git clone https://github.com/Noname968/airin.git
+# Build the application
+npm run build
+
+# Start production server
+npm start
 ```
 
-Go to the project directory
+## Deployment
+
+### Deploy to Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mdtahseen7/airin-revived)
+
+1. Click the deploy button above
+2. Connect your GitHub account
+3. Configure environment variables in Vercel dashboard
+4. Deploy!
+
+### Deploy with Docker
+
+1. **Create your `.env.local` file with all required variables**
+
+2. **Build and run with Docker:**
+   ```bash
+   docker build -t luna .
+   docker run -d -p 3000:3000 --env-file .env.local luna
+   ```
+
+3. **Or use Docker Compose:**
+   ```yaml
+   version: "3.8"
+   services:
+     luna:
+       container_name: luna
+       build: .
+       ports:
+         - "3000:3000"
+       env_file:
+         - .env.local
+       restart: unless-stopped
+   ```
+
+   ```bash
+   docker-compose up -d
+   ```
+
+### Deploy Full Stack (with MongoDB and Redis)
+
+Use the included `docker-compose.yml` for a complete setup:
+
 ```bash
-  cd airin
+docker-compose up -d
 ```
 
-Install dependencies
-```bash
-  npm install
-```
+This will start:
+- Luna application
+- MongoDB instance
+- Redis instance
+- (Optional) Consumet API
 
-Start the server
-
-```bash
-  npm run dev
-```
-
-## Run using Docker
-
-Get the .env.example file from the repo, edit it and then rename it to .env
-
-Move the .env file somewhere it won't bother you (optional)
-
-Run the image:
-```bash
-docker run -d -it \
---name airin \
--p 3000:3000 \
--v <path_of_env_file>/.env:/usr/src/app/.env \
-ghcr.io/Noname968/airin:latest
-```
-
-For Docker Compose:
-```yaml
-version: "3.3"
-services:
-  airin:
-    container_name: airin
-    ports:
-      - 3000:3000
-    volumes:
-      - <path_of_env_file>/.env:/usr/src/app/.env
-    image: ghcr.io/Noname968/airin:latest
-```
-
-For at full stack deploy (db, redis, consumet api)
-See [docker-compose.yml](https://github.com/Noname968/airin/blob/master/docker-compose.yml)
-
-Access Airin at ``http://localhost:3000``
+Access Luna at `http://localhost:3000`
 
 ## Self-Hosting Notice
 
 > [!CAUTION]
-> Self-hosting this application is **strictly limited to personal use only**. Commercial utilization is **prohibited**, and the inclusion of advertisements on your self-hosted website may lead to serious consequences, including **potential site takedown measures**. Ensure compliance to avoid any legal or operational issues.
+> Self-hosting is **strictly for personal use only**. Commercial use is **prohibited**. Adding advertisements may result in **takedown measures**. Please comply with all applicable laws and respect intellectual property rights.
 
+## Tech Stack
 
-<!-- CONTRIBUTING -->
+- **Framework:** Next.js 14 (App Router)
+- **UI Library:** NextUI, Tailwind CSS
+- **Authentication:** NextAuth.js with AniList OAuth
+- **Database:** MongoDB
+- **Cache:** Redis
+- **Video Player:** Vidstack
+- **APIs:** Consumet, Kenjitsu, Anify, AniList GraphQL
+- **Animation:** Framer Motion
+
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions make the open-source community amazing! Any contributions are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+To contribute:
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -160,11 +260,21 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<!-- CONTACT -->
+Don't forget to ⭐ the project!
+
+## License
+
+This project is open source. Please use responsibly and for personal use only.
+
 ## Contact
 
-Project Link: [https://github.com/Noname968/airin](https://github.com/Noname968/airin)
+Project Link: [https://github.com/mdtahseen7/airin-revived](https://github.com/mdtahseen7/airin-revived)
 
-Discord Server: [https://discord.gg/QnbFaudJNf](https://discord.gg/QnbFaudJNf)
+Live Demo: [https://airin-revived.vercel.app](https://airin-revived.vercel.app)
 
-For any queries you can DM me on Discord `harsha9680`.
+## Acknowledgments
+
+- Original Airin project
+- AniList for their amazing API
+- Consumet and Anify for streaming sources
+- All contributors and supporters

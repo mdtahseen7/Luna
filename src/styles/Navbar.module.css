@@ -58,7 +58,7 @@
 .navleft {
     display: flex;
     align-items: center;
-    gap: 50px;
+    gap: 40px;
 }
 
 .logoContainer {
@@ -75,21 +75,40 @@
     line-height: normal;
     letter-spacing: 1px;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: "28 Days Later";
+    font-weight: 500;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
 }
 
 .navItemsContainer {
     display: flex;
-    gap: 15px;
-    margin: 3px 0 0 0;
+    gap: 4px;
+    margin: 0;
+    align-items: center;
 }
 
 .navItem {
-    color: #dadada;
+    color: #a1a1a1;
     text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: transparent;
 }
 
 .navItem:hover {
     color: white;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .navright {

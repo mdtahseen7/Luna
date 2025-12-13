@@ -71,8 +71,8 @@
 }
 
 .navLink.active {
-  background: rgba(202, 19, 19, 0.12);
-  color: #CA1313;
+  background: rgba(124, 1, 255, 0.25);
+  color: #a78bfa;
   position: relative;
 }
 
@@ -84,7 +84,7 @@
   transform: translateY(-50%);
   width: 4px;
   height: 24px;
-  background: #CA1313;
+  background: #a78bfa;
   border-radius: 0 4px 4px 0;
 }
 
@@ -94,6 +94,26 @@
   justify-content: center;
   width: 24px;
   height: 24px;
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #a78bfa;
+  color: #000000;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  border: 2px solid #000000;
+  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
 }
 
 .icon {
@@ -231,8 +251,8 @@
   }
 
   .navLink.active {
-    background: rgba(202, 19, 19, 0.12);
-    color: #CA1313;
+    background: rgba(77, 20, 140, 0.12);
+    color: #a78bfa;
     padding: 10px 16px 10px 16px;
   }
 

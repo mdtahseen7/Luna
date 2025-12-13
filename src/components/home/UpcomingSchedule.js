@@ -60,7 +60,7 @@ const UpcomingSchedule = ({ data, id, startIndex = 0, className = '' }) => {
   };
 
   const getColorStyle = (index) => {
-    const colors = ['#3b82f6', '#8b5cf6', '#ec4899'];
+    const colors = ['#a78bfa', '#8b5cf6', '#c084fc'];
     return maxWidth <= 900
       ? { backgroundColor: colors[index % 3], color: 'white' }
       : { backgroundColor: 'transparent', color: colors[index % 3] };

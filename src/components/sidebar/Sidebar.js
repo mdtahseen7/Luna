@@ -1,7 +1,9 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { Usernotifications } from '@/lib/AnilistUser';
 import styles from '../../styles/Sidebar.module.css';
 import { 
   HomeIcon, 
@@ -16,6 +18,34 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState(null);
+  const { data, status } = useSession();
+  const [todayNotifications, setTodayNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (status === 'authenticated' && data?.user?.token) {
+          const response = await Usernotifications(data.user.token, 1);
+          const notify = response?.notifications?.filter(item => Object.keys(item).length > 0);
+          const filteredNotifications = filterNotifications(notify);
+          setTodayNotifications(filteredNotifications);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    }
+    fetchNotifications();
+  }, [status, data]);
+
+  function filterNotifications(notifications) {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const oneDayInSeconds = 24 * 60 * 60;
+    return notifications.filter(notification => {
+      const createdAtTimestamp = notification.createdAt;
+      const timeDifference = currentTimestamp - createdAtTimestamp;
+      return timeDifference <= oneDayInSeconds;
+    });
+  }
 
   const mainNavItems = [
     {
@@ -133,6 +163,11 @@ export default function Sidebar() {
                 >
                   <div className={styles.iconWrapper}>
                     <Icon className={styles.icon} />
+                    {item.id === 'notifications' && todayNotifications.length > 0 && !active && (
+                      <span className={styles.notificationBadge}>
+                        {todayNotifications.length > 9 ? '9+' : todayNotifications.length}
+                      </span>
+                    )}
                   </div>
                   <span className={`${styles.tooltip} ${hoveredItem === item.id ? styles.tooltipVisible : ''}`}>
                     {item.label}

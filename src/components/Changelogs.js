@@ -62,7 +62,7 @@ const releaseLogs = [
             "Fixed the whole website for better performance and UX",
             "Fixed anime not working properly",
             "Bump new version",
-            "Redevelopment started - Welcome to Akira!",
+            "Redevelopment started - Welcome to Luna!",
         ],
     },
 ];
@@ -149,7 +149,7 @@ export default function Changelogs() {
                                     </div>
                                     <div className="mt-4">
                                         <p className="text-sm text-gray-400">
-                                            Hi there! 🎉 Welcome to the Akira! 🌟 Here, explore the latest updates made to the site! 🚀
+                                            Hi there! 🎉 Welcome to Luna! 🌟 Here, explore the latest updates made to the site! 🚀
                                         </p>
                                     </div>
                                     <div className="my-3 flex items-center justify-evenly flex-col">

@@ -110,7 +110,8 @@ function Navbarcomponent({ home = false }) {
             <div className={styles.navleft}>
                 <div className={styles.logoContainer}>
                     <Link href="/" className={styles.logoLink}>
-                        Akira
+                        
+                        Luna
                     </Link>
                 </div>
                 <div className={styles.navItemsContainer}>
@@ -140,141 +141,6 @@ function Navbarcomponent({ home = false }) {
                         ></path>
                     </svg>
                 </button>
-                <div>
-                    {isLoggedIn && (
-                        <Dropdown placement="bottom-end" classNames={{
-                            base: "before:bg-default-200",
-                            content: "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
-                        }}>
-                            <DropdownTrigger>
-                                <div className='w-[26px] h-[26px] mr-2 mt-[2px] cursor-pointer'>
-                                    <Badge color="danger" content={todayNotifications?.length} shape="circle" showOutline={false} size="sm">
-                                        <NotificationIcon className="fill-current " />
-                                    </Badge>
-                                </div>
-                            </DropdownTrigger>
-                            <DropdownMenu variant="flat" className='w-[320px] '
-                                aria-label="Avatar Actions"
-                                emptyContent="No New Notifications"
-                            >
-                                <DropdownSection title="Notifications">
-                                    <DropdownItem
-                                        isReadOnly
-                                        classNames={{
-                                            base: 'py-0 !hover:bg-none'
-                                        }}
-                                        key="theme"
-                                        className="cursor-default"
-                                        endContent={
-                                            <select
-                                                className="z-10 outline-none cursor-pointer w-[72px] py-0.5 rounded-md text-tiny group-data-[hover=true]:border-default-500 border-small border-default-300 dark:border-default-200 bg-transparent text-default-500"
-                                                id="theme"
-                                                name="theme"
-                                                value={selectedTimeframe}
-                                                onChange={handleTimeframeChange}
-                                            >
-                                                <option>Today</option>
-                                                <option>Recent</option>
-                                            </select>
-                                            // <div className='flex flex-row gap-3'>
-                                            //     <button className='bg-[#18181b] px-3 py-1'>Today</button>
-                                            //     <button>Recent</button>
-                                            // </div>
-                                        }
-                                    >
-                                        Select Timeframe
-                                    </DropdownItem>
-                                </DropdownSection>
-                                <DropdownSection className='w-full'>
-                                    {selectedTimeframe === 'Today' ? (
-                                        todayNotifications?.length > 0 ? todayNotifications?.slice(0, 3).map((item) => {
-                                            const { contexts, media, episode, createdAt } = item;
-                                            return (
-                                                <DropdownItem
-                                                    key={item.id}
-                                                    showFullDescription
-                                                    description={`${contexts?.[0]} ${episode} ${contexts?.[1]} ${media?.title?.[animetitle] || media?.title?.romaji} ${contexts?.[contexts?.length - 1]}`}
-                                                    className='py-2 w-full'
-                                                    classNames={{
-                                                        description: 'text-[11px] text-[#A1A1AA]',
-                                                    }}
-                                                >
-                                                    <div className='flex flex-row items-center justify-between w-[290px]'>
-                                                        <p className='font-semibold text-[14px] w-full'>
-                                                            {((media?.title?.[animetitle] || media?.title?.romaji) || '').slice(0, 24)}
-                                                            {((media?.title?.[animetitle] || media?.title?.romaji) || '').length > 24 && '...'}
-                                                        </p>
-                                                        <span className='text-[#f1f1f1b2] text-[10px]'>{NotificationTime(createdAt)}</span>
-                                                    </div>
-                                                </DropdownItem>
-                                            );
-                                        }) : (
-                                            <DropdownItem
-                                                key={"Lol"}
-                                                showFullDescription
-                                                className='py-3 w-full text-center'
-                                            >
-                                                No New Notifications
-                                            </DropdownItem>
-                                        )
-                                    ) : (
-                                        notifications?.length > 0 ? notifications?.slice(0, 3).map((item) => {
-                                            const { contexts, media, episode, createdAt } = item;
-                                            return (
-                                                <DropdownItem
-                                                    key={item.id}
-                                                    showFullDescription
-                                                    description={`${contexts?.[0]} ${episode} ${contexts?.[1]} ${media?.title?.[animetitle] || media?.title?.romaji} ${contexts?.[contexts?.length - 1]}`}
-                                                    className='py-2 w-full'
-                                                    classNames={{
-                                                        description: 'text-[11px] text-[#A1A1AA]',
-                                                    }}
-                                                >
-                                                    <div className='flex flex-row items-center justify-between w-[290px]'>
-                                                        <p className='font-semibold text-[14px] w-full'>
-                                                            {((media?.title?.[animetitle] || media?.title?.romaji) || '').slice(0, 24)}
-                                                            {((media?.title?.[animetitle] || media?.title?.romaji) || '').length > 24 && '...'}
-                                                        </p>
-                                                        <span className='text-[#f1f1f1b2] text-[10px]'>{NotificationTime(createdAt)}</span>
-                                                    </div>
-                                                </DropdownItem>
-                                            );
-                                        }) : (
-                                            <DropdownItem
-                                                key={"Lol"}
-                                                showFullDescription
-                                                className='py-3 w-full text-center'
-                                            >
-                                                No Notifications!
-                                            </DropdownItem>
-                                        )
-                                    )}
-                                    {selectedTimeframe === 'Today' && todayNotifications?.length > 0 &&
-                                        <DropdownItem
-                                            key={"delete"}
-                                            showFullDescription
-                                            className='py-2 w-full text-xl text-default-500 flex-shrink-0'
-                                            color="danger"
-                                        >
-                                            <Link href={`/user/notifications`} className='w-full h-full block '>Show all</Link>
-                                        </DropdownItem>
-                                    }
-                                    {selectedTimeframe !== 'Today' && notifications?.length > 0 &&
-                                        <DropdownItem
-                                            key={"delete"}
-                                            showFullDescription
-                                            className='py-2 w-full text-xl text-default-500 flex-shrink-0'
-                                            color="danger"
-                                        >
-                                            <Link href={`/user/notifications`} className='w-full h-full block '>Show all</Link>
-                                        </DropdownItem>
-                                    }
-                                </DropdownSection>
-
-                            </DropdownMenu>
-                        </Dropdown>
-                    )}
-                </div>
                 <Dropdown placement="bottom-end" classNames={{
                     base: "before:bg-default-200",
                     content: "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",

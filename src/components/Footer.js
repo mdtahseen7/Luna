@@ -45,7 +45,7 @@ function Footer() {
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
                         <div className="mb-2 lg:mb-0 flex flex-col gap-3">
                             <Link className="flex items-center w-fit" href="/">
-                                <p className="Akira self-center !text-4xl tracking-wider font-medium whitespace-nowrap dark:text-white">Akira</p>
+                                <p className="Akira self-center !text-4xl tracking-wider font-medium whitespace-nowrap dark:text-white">Luna</p>
                             </Link>
                             <p className="mt-1 lg:text-[0.8rem] text-[0.7rem] text-[#ffffffb2] max-w-xl">
                                 This site does not store any files on our server, we only link to media hosted on third party services.
@@ -101,16 +101,14 @@ function Footer() {
                                     <li>
                                         <Link href="/dmca" className="hover:text-white"> DMCA</Link>
                                     </li>
-                                    <li>
-                                        <Link href="https://ko-fi.com/luckyhv" target='_blank' className="hover:text-white !font-semibold !text-[0.8rem]">Donate</Link>
-                                    </li>
+                                    
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="mx-auto w-full lg:max-w-[85%] flex flex-col lg:flex-row lg:items-center lg:justify-between border-t border-white/5 pt-4 pb-24 lg:pb-8 gap-4 lg:gap-0 text-[#ffffffb2] lg:text-[0.8rem] text-[0.7rem] px-4">
-                    <span className="sm:text-center">© {year} <Link href="/" className="hover:text-white">Akira™</Link></span>
+                    <span className="sm:text-center">© {year} <Link href="/" className="hover:text-white">Luna™</Link></span>
                     <div className="flex items-center justify-start lg:justify-end gap-6 flex-wrap">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
