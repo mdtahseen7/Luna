@@ -28,9 +28,6 @@ Experience ad-free anime streaming with seamless AniList integration for progres
   - Auto-play on load
   - Multiple quality options
 - 🔄 **AniList Integration** - Track your progress automatically
-- 📅 **Schedule Page** - See upcoming anime releases
-- 🔥 **Trending Page** - Discover what's popular
-- 🎨 **Purple Theme** - Modern, beautiful UI design
 
 ## Roadmap
 
@@ -115,13 +112,6 @@ ZORO_URI="https://your-aniwatch-api.com"
    - For local development: `http://localhost:3000/api/auth/callback/AniListProvider`
 4. Copy the Client ID and Client Secret to your `.env.local`
 
-### Environment Variable Tips
-
-- Never commit `.env.local` to version control
-- Use different values for development and production
-- Redis significantly improves performance (caches API responses)
-- Without Redis, the app will work but make more API calls
-- Multiple proxies can be configured for better reliability
 
 ## Quick Start
 
@@ -136,8 +126,8 @@ ZORO_URI="https://your-aniwatch-api.com"
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/mdtahseen7/airin-revived.git
-   cd airin-revived
+   git clone https://github.com/mdtahseen7/luna.git
+   cd luna
    ```
 
 2. **Install dependencies**
@@ -155,17 +145,12 @@ ZORO_URI="https://your-aniwatch-api.com"
    # Edit .env.local with your values
    ```
 
-4. **Generate favicons and icons (optional)**
-   ```bash
-   npm run generate-icons
-   ```
-
-5. **Run development server**
+4. **Run development server**
    ```bash
    npm run dev
    ```
 
-6. **Open in browser**
+5. **Open in browser**
    
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -189,50 +174,6 @@ npm start
 2. Connect your GitHub account
 3. Configure environment variables in Vercel dashboard
 4. Deploy!
-
-### Deploy with Docker
-
-1. **Create your `.env.local` file with all required variables**
-
-2. **Build and run with Docker:**
-   ```bash
-   docker build -t luna .
-   docker run -d -p 3000:3000 --env-file .env.local luna
-   ```
-
-3. **Or use Docker Compose:**
-   ```yaml
-   version: "3.8"
-   services:
-     luna:
-       container_name: luna
-       build: .
-       ports:
-         - "3000:3000"
-       env_file:
-         - .env.local
-       restart: unless-stopped
-   ```
-
-   ```bash
-   docker-compose up -d
-   ```
-
-### Deploy Full Stack (with MongoDB and Redis)
-
-Use the included `docker-compose.yml` for a complete setup:
-
-```bash
-docker-compose up -d
-```
-
-This will start:
-- Luna application
-- MongoDB instance
-- Redis instance
-- (Optional) Consumet API
-
-Access Luna at `http://localhost:3000`
 
 ## Self-Hosting Notice
 
@@ -270,13 +211,12 @@ This project is open source. Please use responsibly and for personal use only.
 
 ## Contact
 
-Project Link: [https://github.com/mdtahseen7/airin-revived](https://github.com/mdtahseen7/airin-revived)
+Project Link: [Luna](https://github.com/mdtahseen7/luna)
 
-Live Demo: [https://airin-revived.vercel.app](https://airin-revived.vercel.app)
+Live Demo: [Luna](https://luna-realm.vercel.app)
 
 ## Acknowledgments
 
-- Original Airin project
 - AniList for their amazing API
-- Consumet and Anify for streaming sources
-- All contributors and supporters
+- Consumet and Kenjitsu Api
+
