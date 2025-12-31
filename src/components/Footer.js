@@ -40,7 +40,7 @@ function Footer() {
 
     return (
         <div>
-            <footer className="bg-[#050506] mt-16 border-t border-white/5 shadow-[0_-8px_24px_rgba(148,27,34,0.15)]">
+            <footer className="bg-[#050506] mt-16 border-t border-white/5">
                 <div className="mx-auto w-full lg:max-w-[85%] px-4 py-8 lg:py-10 flex flex-col gap-8">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
                         <div className="mb-2 lg:mb-0 flex flex-col gap-3">

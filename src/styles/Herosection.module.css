@@ -95,10 +95,11 @@
 }
 
 .watchnowbutton {
-    padding: 8px 18px;
+    padding: 12px 28px;
     background-color: #4d148c;
     border-radius: 30px;
     font-weight: 500;
+    font-size: 1.05rem;
     display: flex;
     align-items: center;
 }

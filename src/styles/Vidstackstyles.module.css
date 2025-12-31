@@ -1,6 +1,96 @@
+/* Default Subtitle Styles (Commented out)
 .mediaplayer{
   margin: 0;
-}
+  --media-cue-font-size: 18px;
+  --media-cue-color: #ffffff;
+  --media-cue-bg-color: rgba(0, 0, 0, 0.6);
+  --media-cue-backdrop: transparent;
+  --media-cue-text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --media-cue-font-weight: 500;
+} 
+*/
+
+   /* Alternative Styles (Uncomment to use): */
+   
+   /* 1. Netflix Style (Clean text, no background box) */
+   .mediaplayer {
+     margin: 0;
+     --media-cue-color: #ffffff;
+     --media-cue-bg-color: transparent;
+     --media-cue-backdrop: transparent;
+     --media-cue-text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000, -2px 0 1px #000, 2px 0 1px #000, 0 -2px 1px #000, 0 2px 1px #000;
+     --media-cue-font-weight: 700;
+     --media-cue-font-size: 1.3rem;
+     --media-cue-font-family: 'Arial', 'Helvetica', sans-serif;
+     /* Alternative fonts (uncomment to use):
+        --media-cue-font-family: 'BARTKEY', sans-serif;
+        --media-cue-font-family: 'Aldo the Apache', sans-serif; */
+   }
+
+   /* Larger subtitles in fullscreen */
+   .mediaplayer:fullscreen {
+     --media-cue-font-size: 2.5rem;
+   }
+
+   /* Force override for native cues */
+   .mediaplayer :global(video)::cue {
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000, -2px 0 1px #000, 2px 0 1px #000, 0 -2px 1px #000, 0 2px 1px #000 !important;
+      font-size: 1.3rem !important;
+      font-family: 'Arial', 'Helvetica', sans-serif !important;
+   }
+
+   .mediaplayer:fullscreen :global(video)::cue {
+      font-size: 2.5rem !important;
+   }
+
+   /* Force override for Vidstack custom captions */
+   .mediaplayer :global(.vds-captions),
+   .mediaplayer :global([data-part="captions"]),
+   .mediaplayer :global(.vds-cue),
+   .mediaplayer :global(.media-captions) {
+      --media-cue-bg-color: transparent !important;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+      text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000, -2px 0 1px #000, 2px 0 1px #000, 0 -2px 1px #000, 0 2px 1px #000 !important;
+      font-size: 1.3rem !important;
+      font-family: 'Arial', 'Helvetica', sans-serif !important;
+   }
+
+   .mediaplayer:fullscreen :global(.vds-captions),
+   .mediaplayer:fullscreen :global([data-part="captions"]),
+   .mediaplayer:fullscreen :global(.vds-cue),
+   .mediaplayer:fullscreen :global(.media-captions) {
+      font-size: 2.5rem !important;
+   }
+
+   /* Target all nested cue elements */
+   .mediaplayer :global([data-part="cue"]),
+   .mediaplayer :global([data-part="cue-display"]) {
+      background: transparent !important;
+      background-color: transparent !important;
+      backdrop-filter: none !important;
+   }
+
+   /* Override default layout styles */
+   .mediaplayer :global(.vds-time-slider) ~ :global([data-part="captions"]) :global([data-part="cue"]) {
+      background: transparent !important;
+      backdrop-filter: none !important;
+   }
+/*
+   2. Anime Style (Yellow text with black outline)
+   .mediaplayer {
+     --media-cue-color: #ffd700;
+     --media-cue-bg-color: transparent;
+     --media-cue-text-shadow: 
+       -1px -1px 0 #000,  
+       1px -1px 0 #000,
+       -1px 1px 0 #000,
+       1px 1px 0 #000;
+     --media-cue-font-weight: 600;
+   }
+*/
 
 .bigplaycontainer {
     position: absolute;

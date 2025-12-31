@@ -61,9 +61,6 @@ export function Settings({ placement, tooltipPlacement, subtitles }: SettingsPro
     </Tooltip.Root>
       {/* <Menu.Portal disabled="fullscreen" > */}
       <Menu.Content className={menuClass} placement={placement}>
-      <AutoPlay />
-        <AutoNext />
-        <AutoSkip />
         <SpeedSubmenu />
         {  subtitles?.length > 0 && <CaptionSubmenu/>}
         <QualitySubmenu />

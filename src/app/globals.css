@@ -7,6 +7,17 @@
     src: url('../static-fonts/28 Days Later.ttf');
 }
 
+@font-face {
+    font-family: "Aldo the Apache";
+    src: url('../static-fonts/AldotheApache.ttf');
+}
+
+@font-face {
+    font-family: "BARTKEY";
+    src: url('../static-fonts/BARTKEY.woff2') format('woff2'),
+         url('../static-fonts/BARTKEY.ttf') format('truetype');
+}
+
 .Airin{
     font-family: "28 Days Later";
 }
@@ -186,3 +197,26 @@ html {
     transition: 0.4s;
     transform: translateX(-56px);
   }
+
+/* Vidstack Subtitle Override - Remove Background Box and Blur */
+[data-part="cue"],
+[data-part="cue-display"],
+.vds-cue,
+video::cue {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #ffffff !important;
+  text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000, -2px 0 1px #000, 2px 0 1px #000, 0 -2px 1px #000, 0 2px 1px #000 !important;
+  font-size: 1.3rem !important;
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+}
+
+/* Larger subtitles in fullscreen */
+:fullscreen [data-part="cue"],
+:fullscreen [data-part="cue-display"],
+:fullscreen .vds-cue,
+:fullscreen video::cue {
+  font-size: 2.5rem !important;
+}

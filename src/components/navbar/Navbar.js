@@ -114,22 +114,16 @@ function Navbarcomponent({ home = false }) {
                         Luna
                     </Link>
                 </div>
-                <div className={styles.navItemsContainer}>
-                    <Link href="/anime/catalog" className={styles.navItem}>Catalog</Link>
-                    <Link href="/anime/catalog?sortby=TRENDING_DESC" className={styles.navItem}>Trending</Link>
-                    <Link href="/anime/catalog?format=MOVIE" className={styles.navItem}>Movies</Link>
-                </div>
-            </div>
-            <div className={styles.navright}>
                 <button
                     type="button"
                     title="Search"
-                    onClick={() => useSearchbar.setState({ Isopen: true }) } 
-                    className="w-[26px] h-[26px] outline-none"
+                    onClick={() => useSearchbar.setState({ Isopen: true }) }
+                    className="ml-3 px-4 py-2 min-w-[200px] lg:min-w-[300px] h-[40px] outline-none backdrop-blur-md bg-white/5 rounded-full flex items-center gap-3 hover:bg-white/10 transition-all border border-white/10"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
+                        className="w-5 h-5 flex-shrink-0"
                     >
                         <path
                             fill="none"
@@ -140,7 +134,11 @@ function Navbarcomponent({ home = false }) {
                             d="M15 15l6 6m-11-4a7 7 0 110-14 7 7 0 010 14z"
                         ></path>
                     </svg>
+                    <span className="text-white/50 text-sm font-medium">Search anime...</span>
+                    <span className="ml-auto text-white/30 text-xs hidden lg:block">Ctrl+S</span>
                 </button>
+            </div>
+            <div className={styles.navright}>
                 <Dropdown placement="bottom-end" classNames={{
                     base: "before:bg-default-200",
                     content: "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
@@ -150,7 +148,7 @@ function Navbarcomponent({ home = false }) {
                             isBordered
                             isDisabled={status === 'loading'}
                             as="button"
-                            className="transition-transform w-[27px] h-[27px] backdrop-blur-sm"
+                            className="transition-transform w-[36px] h-[36px] backdrop-blur-md bg-white/5 hover:scale-110"
                             color="secondary"
                             name={data?.user?.name}
                             size="sm"

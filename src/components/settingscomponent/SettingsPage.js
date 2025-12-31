@@ -13,11 +13,10 @@ const SwitchSetting = ({ value, onValueChange }) => {
                 base: cn(
                     "inline-flex flex-row-reverse w-full bg-none hover:bg-none items-center",
                     "justify-between cursor-pointer rounded-lg gap-2 py-4 border-none border-transparent",
-                    "data-[selected=true]:border-primary",
                 ),
                 wrapper: "p-0 h-4 overflow-visible",
                 thumb: cn("w-6 h-6 border-2 shadow-lg",
-                    "group-data-[hover=true]:border-primary",
+                    "group-data-[hover=true]:border-white",
                     "group-data-[selected=true]:ml-6",
                     "group-data-[pressed=true]:w-7",
                     "group-data-[selected]:group-data-[pressed]:ml-4",
