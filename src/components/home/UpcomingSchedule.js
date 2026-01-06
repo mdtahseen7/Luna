@@ -88,7 +88,7 @@ const UpcomingSchedule = ({ data, id, startIndex = 0, className = '' }) => {
           <p>No upcoming episodes</p>
         </div>
       ) : (
-        activeData?.slice(0, 12).map((anime, index) => (
+        activeData?.slice(0, 5).map((anime, index) => (
         <div className={`${styles.vcarditem} group`} key={`${anime.id}-${anime.episode}`}>
           <div
             className={styles.vcardindex}

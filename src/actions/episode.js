@@ -180,9 +180,9 @@ async function fetchEpisodeMeta(id, available = false) {
   }
 }
 
-const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [], title = '') => {
+const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [], title = '', fast = false) => {
   const isHentai = genres?.includes('Hentai');
-  logger.log(`\n========== [EPISODES] Fetching for AniList ID: ${id} ==========`);
+  logger.log(`\n========== [EPISODES] Fetching for AniList ID: ${id} (Fast: ${fast}) ==========`);
   logger.log(`[EPISODES] Title: ${title}`);
   logger.log(`[EPISODES] Genres:`, genres);
   logger.log(`[EPISODES] Is Hentai: ${isHentai}`);
@@ -219,13 +219,15 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [
   } else {
     // Regular anime flow
     if (id) {
-      mappings = await getMappings(id);
+      // If fast mode, only check Kaido (fastest/most reliable). Otherwise check all.
+      const providersToCheck = fast ? ['kaido'] : ['animepahe', 'kaido', 'hianime'];
+      mappings = await getMappings(id, providersToCheck);
       logger.log(`[EPISODES] Mappings received:`, mappings);
     }
 
     if (mappings) {
       // Fetch episodes in parallel for better performance
-      logger.log(`[EPISODES] Starting parallel fetch for all providers`);
+      logger.log(`[EPISODES] Starting parallel fetch for providers: ${fast ? 'Fast Mode' : 'Full Mode'}`);
     
     const fetchPromises = [];
     
@@ -322,20 +324,25 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [
 
   // Check if redis is available
   if (redis) {
-    if (allepisodes) {
+    // Only cache if not in fast mode
+    if (allepisodes && !fast) {
       logger.log(`[EPISODES] Caching ${allepisodes.length} providers to Redis`);
       await redis.setex(
         `episode:${id}`,
         cacheTime,
         JSON.stringify(allepisodes)
       );
+    } else if (fast) {
+        logger.log(`[EPISODES] Fast mode enabled: Skipping Redis cache write`);
     }
 
     let data = allepisodes;
     if (refresh) {
       if (cover && cover?.length > 0) {
         try {
-          await redis.setex(`meta:${id}`, cacheTime, JSON.stringify(cover));
+          if (!fast) { // Only cache meta if not fast
+              await redis.setex(`meta:${id}`, cacheTime, JSON.stringify(cover));
+          }
           data = await CombineEpisodeMeta(allepisodes, cover);
         } catch (error) {
           logger.error("Error serializing cover:", error.message);
@@ -358,9 +365,9 @@ const fetchAndCacheData = async (id, meta, redis, cacheTime, refresh, genres = [
   }
 };
 
-export const getEpisodes = async (id, status, refresh = false, genres = [], title = '') => {
+export const getEpisodes = async (id, status, refresh = false, genres = [], title = '', fast = false) => {
   const isHentai = genres?.includes('Hentai');
-  logger.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh}, genres: ${genres}, isHentai: ${isHentai} ==========`);
+  logger.log(`\n========== [getEpisodes] Called for ID: ${id}, refresh: ${refresh}, genres: ${genres}, isHentai: ${isHentai}, fast: ${fast} ==========`);
   let cacheTime = null;
   if (status) {
     cacheTime = 60 * 60 * 3;
@@ -393,8 +400,9 @@ export const getEpisodes = async (id, status, refresh = false, genres = [], titl
         cached = null;
       }
       let data;
+      // If refresh is force, we bypass cache.
       if (refresh) {
-        data = await fetchAndCacheData(id, meta, redis, cacheTime, refresh, genres, title);
+        data = await fetchAndCacheData(id, meta, redis, cacheTime, refresh, genres, title, fast);
       }
       if (data?.length > 0) {
         logger.log("deleted cache");
@@ -429,7 +437,8 @@ export const getEpisodes = async (id, status, refresh = false, genres = [], titl
       cacheTime,
       !refresh,
       genres,
-      title
+      title,
+      fast
     );
     return fetchdata;
   }

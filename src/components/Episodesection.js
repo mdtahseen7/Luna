@@ -51,10 +51,43 @@ function Episodesection({ data, id, progress, setUrl }) {
   useEffect(() => {
     const fetchepisodes = async () => {
       try {
-        const response = await getEpisodes(id, data?.status === "RELEASING", false, data?.genres, data?.title?.romaji || data?.title?.english);
-        setEpisodeData(response);
-        if (response) {
-          const {suboptions, dubLength} = ProvidersMap(response, defaultProvider, setdefaultProvider);
+        setloading(true);
+        
+        // 1. Fast Mode: Fetch mostly reliable provider first (Kaido/Redis Cache)
+        const fastResponse = await getEpisodes(
+          id, 
+          data?.status === "RELEASING", 
+          false, 
+          data?.genres, 
+          data?.title?.romaji || data?.title?.english,
+          true // fast=true
+        );
+
+        if (fastResponse && fastResponse.length > 0) {
+          setEpisodeData(fastResponse);
+          if (fastResponse) {
+            const {suboptions, dubLength} = ProvidersMap(fastResponse, defaultProvider, setdefaultProvider);
+            setSuboptions(suboptions);
+            setDubcount(dubLength);
+          }
+          setloading(false); // Show results immediately if we found something
+        }
+
+        // 2. Full Mode: Fetch all providers (background/enhancement)
+        // If the first request was a cache hit, this might return the same data, which is fine.
+        // If the first request was a partial fetch, this will fill in the rest.
+        const fullResponse = await getEpisodes(
+          id, 
+          data?.status === "RELEASING", 
+          false, 
+          data?.genres, 
+          data?.title?.romaji || data?.title?.english,
+          false // fast=false
+        );
+        
+        setEpisodeData(fullResponse);
+        if (fullResponse) {
+          const {suboptions, dubLength} = ProvidersMap(fullResponse, defaultProvider, setdefaultProvider);
           setSuboptions(suboptions);
           setDubcount(dubLength);
         }
@@ -67,7 +100,7 @@ function Episodesection({ data, id, progress, setUrl }) {
     if (data?.type !== 'MANGA' && data?.status !== 'NOT_YET_RELEASED') {
       fetchepisodes();
     }
-  }, [data?.id, data?.type, data?.status, data?.genres, data?.title?.romaji, data?.title?.english, id, defaultProvider])
+  }, [data?.id, data?.type, data?.status, data?.genres, data?.title?.romaji, data?.title?.english, id])
 
   const handleProviderChange = (event) => {
     setdefaultProvider(event.target.value);

@@ -75,6 +75,18 @@
     font-size: 0.95rem;
 }
 
+.logoWrapper {
+    margin-bottom: 12px;
+    max-width: min(60%, 420px);
+}
+
+.logoImage {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
+}
+
 .activestatus{
     color: #2fc867;
 }

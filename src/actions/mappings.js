@@ -3,7 +3,7 @@ import { redis } from '@/lib/rediscache';
 import { AnimeInfoAnilist } from '@/lib/Anilistfunctions'
 import { findSimilarTitles } from '@/lib/stringSimilarity';
 
-export async function getMappings(anilistId) {
+export async function getMappings(anilistId, providers = ['animepahe', 'kaido', 'hianime']) {
     console.log(`\n========== [MAPPINGS] Starting for AniList ID: ${anilistId} ==========`);
     // Always print the AnimePahe base URL to verify env resolution
     try {
@@ -13,28 +13,37 @@ export async function getMappings(anilistId) {
         console.log(`[MAPPINGS] AnimePahe API base: ERROR reading env`, e?.message);
     }
     const data = await getInfo(anilistId);
-    let animepaheres, kaidores, hianimeres;
+    
     if (!data) {
         console.log("[MAPPINGS] No anime info found");
         return null;
     }
     console.log(`[MAPPINGS] Anime Title: ${data?.title?.romaji || data?.title?.english}`);
+
+    const mappingPromises = [];
     
-    // AnimePahe and Kaido mapping
-    animepaheres = await mapAnimePahe(data?.title);
-    console.log(`[MAPPINGS] AnimePahe result:`, animepaheres);
+    if (providers.includes('animepahe')) {
+        mappingPromises.push(mapAnimePahe(data?.title).then(res => ({ provider: 'animepahe', data: res })));
+    }
+    if (providers.includes('kaido')) {
+        mappingPromises.push(mapKaido(data?.title).then(res => ({ provider: 'kaido', data: res })));
+    }
+    if (providers.includes('hianime')) {
+        mappingPromises.push(mapHiAnime(data?.title).then(res => ({ provider: 'hianime', data: res })));
+    }
     
-    kaidores = await mapKaido(data?.title);
-    console.log(`[MAPPINGS] Kaido result:`, kaidores);
+    const results = await Promise.all(mappingPromises);
     
-    // HiAnime mapping
-    hianimeres = await mapHiAnime(data?.title);
-    console.log(`[MAPPINGS] HiAnime result:`, hianimeres);
+    const resultMap = { animepahe: null, kaido: null, hianime: null };
+    results.forEach(result => {
+        resultMap[result.provider] = result.data;
+        console.log(`[MAPPINGS] ${result.provider} result:`, result.data);
+    });
     
     const result = { 
-        animepahe: animepaheres, 
-        kaido: kaidores, 
-        hianime: hianimeres,
+        animepahe: resultMap.animepahe, 
+        kaido: resultMap.kaido, 
+        hianime: resultMap.hianime,
         id: data?.id, 
         malId: data?.idMal, 
         title: data?.title.romaji 

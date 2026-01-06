@@ -11,6 +11,7 @@ function Herosection({ data }) {
   const [trailer, setTrailer] = useState(null);
   const [populardata, setPopulardata] = useState(null);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
   const animetitle = useStore(useTitle, (state) => state.animetitle);
 
   // Get random anime from data
@@ -26,6 +27,56 @@ function Herosection({ data }) {
     };
     getRandomAnime();
   }, [data]);
+
+  // Fetch TVDB logo for the selected anime title
+  useEffect(() => {
+    if (!populardata) {
+      setLogoUrl(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function fetchLogo() {
+      try {
+        const titleToUse =
+          populardata.title?.[animetitle] ||
+          populardata.title?.english ||
+          populardata.title?.romaji;
+
+        if (!titleToUse) {
+          setLogoUrl(null);
+          return;
+        }
+
+        const year = populardata.startDate?.year;
+        const params = new URLSearchParams({ title: titleToUse });
+        if (year) params.set('year', String(year));
+
+        const res = await fetch(`/api/tvdb-logo?${params.toString()}`, {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          setLogoUrl(null);
+          return;
+        }
+
+        const data = await res.json();
+        setLogoUrl(data.logoUrl || null);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setLogoUrl(null);
+        }
+      }
+    }
+
+    fetchLogo();
+
+    return () => {
+      controller.abort();
+    };
+  }, [populardata, animetitle]);
 
   // Fetch trailer for random anime
   useEffect(() => {
@@ -153,7 +204,20 @@ function Herosection({ data }) {
         </span>
       )}
       <div className={styles.heroinfo}>
-        <h1 className={styles.herotitle}>{populardata.title?.[animetitle] || populardata.title?.romaji}</h1>
+        {logoUrl ? (
+          <div className={styles.logoWrapper}>
+            <Image
+              src={logoUrl}
+              alt={populardata.title?.[animetitle] || populardata.title?.romaji || 'Title logo'}
+              width={400}
+              height={160}
+              className={styles.logoImage}
+              priority
+            />
+          </div>
+        ) : (
+          <h1 className={styles.herotitle}>{populardata.title?.[animetitle] || populardata.title?.romaji}</h1>
+        )}
         <div className={styles.herocontent}>
           <span className='flex'>
           <svg xmlns="http://www.w3.org/2000/svg" className='w-5 h-5 mr-1' viewBox="0 0 48 48"><defs><mask id="ipSPlay0"><g fill="none" strokeLinejoin="round" strokeWidth="4"><path fill="#fff" stroke="#fff" d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4S4 12.954 4 24s8.954 20 20 20Z"/><path fill="#000" stroke="#000" d="M20 24v-6.928l6 3.464L32 24l-6 3.464l-6 3.464z"/></g></mask></defs><path fill="currentColor" d="M0 0h48v48H0z" mask="url(#ipSPlay0)"/></svg>                   
