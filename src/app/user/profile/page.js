@@ -16,6 +16,18 @@ async function page() {
   }
 
   const data = await UserProfile(session?.user?.token, session?.user?.name);
+  
+  if (!data) {
+    return (
+      <div className='min-h-screen'>
+        <Navbarcomponent home={true} />
+        <div className="flex justify-center items-center h-[50vh] text-white">
+          <p>Failed to load profile. Please try logging in again.</p>
+        </div>
+      </div>
+    );
+  }
+
   const { user, lists } = data;
 
   return (

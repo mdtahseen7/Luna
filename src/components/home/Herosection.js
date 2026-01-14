@@ -163,8 +163,6 @@ function Herosection({ data }) {
 
   return (
     <div className={`${styles.herosection}`}>
-      <div className={styles.herogradient}></div>
-
       {trailer && !videoEnded ? (
         <span className={styles.heroimgcon}>
           {isYouTubeEmbed ? (
@@ -203,6 +201,7 @@ function Herosection({ data }) {
           }
         </span>
       )}
+      <div className={styles.herogradient}></div>
       <div className={styles.heroinfo}>
         {logoUrl ? (
           <div className={styles.logoWrapper}>

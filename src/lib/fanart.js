@@ -41,6 +41,17 @@ async function fetchFromFanart(tvdbId) {
   return await res.json();
 }
 
+// Helper to clean title (remove 'Season X', 'Part X', etc.)
+function cleanTitle(title) {
+  if (!title) return '';
+  return title
+    .replace(/season\s+\d+/gi, '') // Remove "Season 1", "Season 2"
+    .replace(/part\s+\d+/gi, '')   // Remove "Part 1"
+    .replace(/cour\s+\d+/gi, '')   // Remove "Cour 1"
+    .replace(/[:\-]\s*$/g, '')     // Remove trailing colons/dashes
+    .trim();
+}
+
 export async function fetchSeriesLogoUrl({ title, year }) {
   if (!title) return null;
 
@@ -53,11 +64,44 @@ export async function fetchSeriesLogoUrl({ title, year }) {
 
   try {
     // 2. Search TMDB for the TV Show ID
-    const searchParams = { query: title };
-    if (year) searchParams.first_air_date_year = year;
+    const doSearch = async (q, y) => {
+      const p = { query: q };
+      if (y) p.first_air_date_year = y;
+      return await fetchFromTmdb('/search/tv', p);
+    };
 
-    const searchData = await fetchFromTmdb('/search/tv', searchParams);
-    const show = searchData?.results?.[0];
+    // Attempt 1: Exact title + Year
+    let searchData = await doSearch(title, year);
+    let show = searchData?.results?.[0];
+
+    // Attempt 2: Cleaned title (remove Season X) + Year
+    if (!show) {
+      const cleaned = cleanTitle(title);
+      if (cleaned !== title) {
+        logger.log(`Fanart/TMDB: valid show not found for "${title}". Retrying with cleaned title: "${cleaned}"`);
+        searchData = await doSearch(cleaned, year);
+        show = searchData?.results?.[0];
+      }
+    }
+
+    // Attempt 3: Cleaned title + NO year (sometimes year mismatches for specific seasons)
+    if (!show) {
+        const cleaned = cleanTitle(title);
+        logger.log(`Fanart/TMDB: Retrying with cleaned title "${cleaned}" and NO year`);
+        searchData = await doSearch(cleaned);
+        show = searchData?.results?.[0];
+    }
+
+    // Attempt 4: Title before colon (e.g. "Jujutsu Kaisen: Culling Game" -> "Jujutsu Kaisen")
+    if (!show && title.includes(':')) {
+        const shortTitle = title.split(':')[0].trim();
+        // Only if short title is different from what we already tried
+        if (shortTitle && shortTitle !== title && shortTitle !== cleanTitle(title)) {
+             logger.log(`Fanart/TMDB: Retrying with short title (before colon) "${shortTitle}"`);
+             searchData = await doSearch(shortTitle);
+             show = searchData?.results?.[0];
+        }
+    }
 
     if (!show) {
       logger.log(`Fanart/TMDB: No show found for "${title}"`);
@@ -107,7 +151,7 @@ export async function fetchSeriesLogoUrl({ title, year }) {
         // 2. Type: clearlogo preferred over hdtvlogo (for smaller size)
         const typeA = a.type === 'clearlogo' ? 1 : 0;
         const typeB = b.type === 'clearlogo' ? 1 : 0;
-        if (typeA !== typeB) return typeA - typeB; // clearlogo (1) comes before hdtvlogo (0)
+        if (typeA !== typeB) return typeB - typeA; // Descending: 1 (clearlogo) comes before 0 (hdtv)
 
         // 3. Likes: Higher likes first
         return (parseInt(b.likes) || 0) - (parseInt(a.likes) || 0);

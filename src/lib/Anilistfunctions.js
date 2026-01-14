@@ -365,16 +365,27 @@ export const UserWatchingList = async (token, userId) => {
             return [];
         }
 
-        // Find the CURRENT list specifically
-        const currentList = data.data.MediaListCollection.lists.find(list => list.status === 'CURRENT');
+        // Aggregate entries from ALL lists with status CURRENT (handles split lists)
+        const currentLists = data.data.MediaListCollection.lists.filter(list => list.status === 'CURRENT');
         
-        if (!currentList || !currentList.entries || currentList.entries.length === 0) {
-            // console.log('[UserWatchingList] No currently watching anime found');
+        if (currentLists.length === 0) {
+            // console.log('[UserWatchingList] No currently watching lists found');
+            return [];
+        }
+
+        let allEntries = [];
+        currentLists.forEach(list => {
+            if (list.entries && list.entries.length > 0) {
+                allEntries = [...allEntries, ...list.entries];
+            }
+        });
+
+        if (allEntries.length === 0) {
             return [];
         }
 
         // Extract media from entries and return only those with CURRENT status
-        const watchingAnime = currentList.entries
+        const watchingAnime = allEntries
             .filter(entry => entry.status === 'CURRENT')
             .map(entry => ({
                 ...entry.media,

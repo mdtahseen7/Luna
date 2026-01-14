@@ -100,6 +100,15 @@ export const saveProgress = async (token, id, progress) => {
 }
 
 export const UserProfile = async (token, username) => {
-    const res = await GraphQlClient(token, userprofile, { username });
-    return res.data.MediaListCollection;
+    try {
+        const res = await GraphQlClient(token, userprofile, { username });
+        if (!res || !res.data || !res.data.MediaListCollection) {
+            console.error("UserProfile: Failed to fetch data", res?.errors);
+            return null;
+        }
+        return res.data.MediaListCollection;
+    } catch (err) {
+        console.error("UserProfile Error:", err);
+        return null; 
+    }
 }

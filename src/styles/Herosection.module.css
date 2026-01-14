@@ -11,6 +11,7 @@
 .heroimgcon {
     width: 100%;
     height: 80vh;
+    overflow: hidden;
 }
 
 .herovideo {
@@ -18,6 +19,8 @@
     width: 100%;
     object-fit: cover;
     pointer-events: none;
+    transform: scale(1.35);
+    filter: brightness(0.6);
 }
 
 .heroimg {
