@@ -233,7 +233,7 @@ This implementation plan breaks down the Android app development into incrementa
   - Verify navigation between screens
   - Ask the user if questions arise
 
-- [ ] 11. Video Player Implementation
+- [x] 11. Video Player Implementation
   - [x] 11.1 Create WatchViewModel
     - Manage video source loading from providers
     - Handle subtitle track selection
@@ -278,112 +278,112 @@ This implementation plan breaks down the Android app development into incrementa
     - Handle JavaScript and media playback
     - _Requirements: 5.1_
 
-  - [ ] 11.9 Create Watch Screen UI
+  - [x] 11.9 Create Watch Screen UI
     - Integrate video player component
     - Display episode info below player
     - Show episode list with provider selector
     - Handle error states with server suggestions
     - _Requirements: 5.1, 5.2, 5.9_
 
-- [ ] 12. Watch Progress and History
-  - [ ] 12.1 Implement progress saving
+- [x] 12. Watch Progress and History
+  - [x] 12.1 Implement progress saving
     - Save position every 5 seconds during playback
     - Save to local Room database
     - Sync to AniList when logged in
     - _Requirements: 5.7, 6.1, 6.2, 6.4_
 
-  - [ ] 12.2 Implement resume functionality
+  - [x] 12.2 Implement resume functionality
     - Load saved position when returning to episode
     - Resume from saved position (minus 3 seconds buffer)
     - Reset if watched > 90%
     - _Requirements: 5.8_
 
-  - [ ] 12.3 Implement Continue Watching section
+  - [x] 12.3 Implement Continue Watching section
     - Query recent watch history
     - Display on home screen
     - Navigate to watch screen with correct state
     - _Requirements: 6.3_
 
-- [ ] 13. Checkpoint - Video Playback Complete
+- [x] 13. Checkpoint - Video Playback Complete
   - Ensure video plays from all providers
   - Verify skip times and auto-next work
   - Verify progress saving and resume
   - Ask the user if questions arise
 
-- [ ] 14. User Authentication and Profile
-  - [ ] 14.1 Implement AniList OAuth flow
+- [x] 14. User Authentication and Profile
+  - [x] 14.1 Implement AniList OAuth flow
     - Create login screen with AniList button
     - Handle OAuth redirect with custom URI scheme
     - Exchange code for token
     - Store token securely
     - _Requirements: 7.1, 7.2_
 
-  - [ ] 14.2 Create Profile Screen
+  - [x] 14.2 Create Profile Screen
     - Display user banner, avatar, name, join date
     - Display anime lists (Watching, Completed, Planning, etc.)
     - Implement list tabs with anime grids
     - Handle navigation to anime details
     - _Requirements: 7.3, 7.4, 7.5_
 
-  - [ ] 14.3 Implement logout functionality
+  - [x] 14.3 Implement logout functionality
     - Clear stored token
     - Clear user-specific cached data
     - Navigate to home screen
     - _Requirements: 7.6_
 
-  - [ ] 14.4 Implement Notifications Screen
+  - [x] 14.4 Implement Notifications Screen
     - Fetch notifications from AniList
     - Display notification type, content, timestamp
     - Implement pagination on scroll
     - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 15. Settings Screen
-  - [ ] 15.1 Create Settings Screen UI
+- [x] 15. Settings Screen
+  - [x] 15.1 Create Settings Screen UI
     - Implement toggle switches for all settings
     - Homepage Trailer, AutoSkip, AutoPlay, AutoNext, Mute Audio
     - Implement video load mode selection (Idle, Visible, Eager)
     - Implement title language preference
     - _Requirements: 9.1, 9.3, 9.5_
 
-  - [ ] 15.2 Wire settings to app behavior
+  - [x] 15.2 Wire settings to app behavior
     - Apply settings on app launch
     - React to setting changes in real-time
     - Persist changes immediately
     - _Requirements: 9.2, 9.4_
 
-- [ ] 16. Schedule Screen
-  - [ ] 16.1 Create ScheduleViewModel
+- [x] 16. Schedule Screen
+  - [x] 16.1 Create ScheduleViewModel
     - Fetch airing schedule for current week
     - Group anime by day of week
     - _Requirements: 13.1, 13.2_
 
-  - [ ] 16.2 Create Schedule Screen UI
+  - [x] 16.2 Create Schedule Screen UI
     - Display day tabs or sections
     - Show anime cards with episode number and airing time
     - Handle navigation to anime details
     - _Requirements: 13.2, 13.3, 13.4_
 
-  - [ ] 16.3 Write property test for schedule grouping
+  - [x] 16.3 Write property test for schedule grouping
     - **Property 10: Schedule Grouping by Day**
     - **Validates: Requirements 13.2, 13.3**
 
-- [ ] 17. Error Handling and Edge Cases
-  - [ ] 17.1 Implement global error handling
+- [x] 17. Error Handling and Edge Cases
+  - [x] 17.1 Implement global error handling
     - Create ErrorHandler class
     - Map exceptions to AppError types
     - Display appropriate error UI
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
 
-  - [ ] 17.2 Implement session expiry handling
+  - [x] 17.2 Implement session expiry handling
     - Detect 401 responses
     - Clear token and prompt re-authentication
     - _Requirements: 12.5_
 
-  - [ ] 17.3 Write property test for session expiry handling
+  - [x] 17.3 Write property test for session expiry handling
     - **Property 18: Session Expiry Handling**
     - **Validates: Requirements 12.5**
 
-  - [ ] 17.4 Implement provider fallback UI
+  - [x] 17.4 Implement provider fallback UI
     - Show alternative server suggestions on failure
     - Allow easy provider switching
     - _Requirements: 12.3_
@@ -409,31 +409,35 @@ This implementation plan breaks down the Android app development into incrementa
     - Display cached images offline
     - _Requirements: 11.4_
 
-- [ ] 19. UI Polish and Accessibility
-  - [ ] 19.1 Implement loading states
+- [x] 19. UI Polish and Accessibility
+  - [x] 19.1 Implement loading states
     - Add shimmer/skeleton loading for lists
     - Add loading indicators for data fetching
     - _Requirements: 10.5_
 
-  - [ ] 19.2 Implement Go to Top button
+  - [x] 19.2 Implement Go to Top button
     - Show FAB when scrolled down
     - Smooth scroll to top on click
     - _Requirements: 10.3_
 
-  - [ ] 19.3 Write property test for navigation from anime card
+  - [x] 19.3 Write property test for navigation from anime card
     - **Property 15: Navigation from Anime Card**
     - **Validates: Requirements 1.6, 7.5, 13.4**
+    - **Status: PASSED** - All 4 property tests passed (100 iterations each)
+    - Tests verify navigation callback preserves anime IDs correctly across different screen contexts
 
-  - [ ] 19.4 Handle configuration changes
+  - [x] 19.4 Handle configuration changes
     - Preserve state on rotation
     - Handle theme changes
     - _Requirements: 15.5_
 
-  - [ ] 19.5 Write property test for configuration change state preservation
+  - [x] 19.5 Write property test for configuration change state preservation
     - **Property 16: Configuration Change State Preservation**
     - **Validates: Requirements 15.5**
+    - **Status: PASSED** - All 9 property tests passed (100 iterations each)
+    - Tests verify SavedStateHandle preserves various data types across configuration changes
 
-- [ ] 20. Final Checkpoint - App Complete
+- [x] 20. Final Checkpoint - App Complete
   - Run all tests and ensure they pass
   - Verify all features work end-to-end
   - Test on multiple device sizes

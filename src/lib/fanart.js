@@ -1,13 +1,15 @@
 
 import { logger } from '@/utils/logger';
+import { redis } from './rediscache';
 
 // Base URLs
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const FANART_BASE_URL = 'http://webservice.fanart.tv/v3';
 
-// In-memory cache to prevent hitting limits
+// In-memory cache as fallback (for when Redis is unavailable)
 const logoCache = new Map(); // key: "title|year" -> { url, cachedAt }
 const CACHE_DURATION = 1000 * 60 * 60 * 24; // 24 hours
+const REDIS_CACHE_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds (logos rarely change)
 
 // Helper to make cache key
 function makeKey(title, year) {
@@ -55,11 +57,27 @@ function cleanTitle(title) {
 export async function fetchSeriesLogoUrl({ title, year }) {
   if (!title) return null;
 
-  // 1. Check Cache
   const key = makeKey(title, year);
-  const cached = logoCache.get(key);
-  if (cached && (Date.now() - cached.cachedAt < CACHE_DURATION)) {
-    return cached.url;
+  const redisKey = `fanart:${key}`;
+
+  // 1. Check Redis cache first
+  if (redis) {
+    try {
+      const cached = await redis.get(redisKey);
+      if (cached) {
+        logger.log(`Fanart: Cache hit (Redis) for "${title}"`);
+        return cached === 'null' ? null : cached;
+      }
+    } catch (err) {
+      logger.error('Fanart: Redis get error:', err);
+    }
+  }
+
+  // 2. Check in-memory cache as fallback
+  const memCached = logoCache.get(key);
+  if (memCached && (Date.now() - memCached.cachedAt < CACHE_DURATION)) {
+    logger.log(`Fanart: Cache hit (memory) for "${title}"`);
+    return memCached.url;
   }
 
   try {
@@ -105,7 +123,15 @@ export async function fetchSeriesLogoUrl({ title, year }) {
 
     if (!show) {
       logger.log(`Fanart/TMDB: No show found for "${title}"`);
+      // Cache null result to avoid repeated API calls
       logoCache.set(key, { url: null, cachedAt: Date.now() });
+      if (redis) {
+        try {
+          await redis.setex(redisKey, REDIS_CACHE_DURATION, 'null');
+        } catch (err) {
+          logger.error('Fanart: Redis setex error:', err);
+        }
+      }
       return null;
     }
 
@@ -116,6 +142,13 @@ export async function fetchSeriesLogoUrl({ title, year }) {
     if (!tvdbId) {
       logger.log(`Fanart/TMDB: No TVDB ID found for TMDB show ${show.id} ("${title}")`);
       logoCache.set(key, { url: null, cachedAt: Date.now() });
+      if (redis) {
+        try {
+          await redis.setex(redisKey, REDIS_CACHE_DURATION, 'null');
+        } catch (err) {
+          logger.error('Fanart: Redis setex error:', err);
+        }
+      }
       return null;
     }
 
@@ -124,6 +157,13 @@ export async function fetchSeriesLogoUrl({ title, year }) {
     if (!fanartData) {
       logger.log(`Fanart: No data for TVDB ID ${tvdbId}`);
       logoCache.set(key, { url: null, cachedAt: Date.now() });
+      if (redis) {
+        try {
+          await redis.setex(redisKey, REDIS_CACHE_DURATION, 'null');
+        } catch (err) {
+          logger.error('Fanart: Redis setex error:', err);
+        }
+      }
       return null;
     }
 
@@ -138,6 +178,13 @@ export async function fetchSeriesLogoUrl({ title, year }) {
     if (logos.length === 0) {
       logger.log(`Fanart: No logos found for TVDB ID ${tvdbId}`);
       logoCache.set(key, { url: null, cachedAt: Date.now() });
+      if (redis) {
+        try {
+          await redis.setex(redisKey, REDIS_CACHE_DURATION, 'null');
+        } catch (err) {
+          logger.error('Fanart: Redis setex error:', err);
+        }
+      }
       return null;
     }
 
@@ -160,7 +207,16 @@ export async function fetchSeriesLogoUrl({ title, year }) {
     const bestLogo = logos[0].url;
     logger.log(`Fanart: Found logo for "${title}": ${bestLogo}`);
     
+    // Cache in both Redis and memory
     logoCache.set(key, { url: bestLogo, cachedAt: Date.now() });
+    if (redis) {
+      try {
+        await redis.setex(redisKey, REDIS_CACHE_DURATION, bestLogo);
+        logger.log(`Fanart: Cached in Redis for 7 days`);
+      } catch (err) {
+        logger.error('Fanart: Redis setex error:', err);
+      }
+    }
     return bestLogo;
 
   } catch (error) {

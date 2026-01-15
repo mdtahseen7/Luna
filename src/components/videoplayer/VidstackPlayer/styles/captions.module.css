@@ -94,3 +94,29 @@
 :global(.player[data-controls]) .captions {
   bottom: 78px;
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .captions {
+    --cue-font-size: 14px;
+    --cue-line-height: 16px;
+  }
+
+  .captions [data-part='cue'] {
+    font-size: 14px !important;
+    line-height: 16px !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .captions {
+    --cue-font-size: 13px;
+    --cue-line-height: 15px;
+  }
+
+  .captions [data-part='cue'] {
+    font-size: 13px !important;
+    line-height: 15px !important;
+  }
+}

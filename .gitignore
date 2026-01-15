@@ -5,7 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
-
+/.kiro/specs/android-anime-app
 # testing
 /coverage
 
@@ -43,4 +43,5 @@ next-env.d.ts
 **/public/workbox-*.js.map
 **/public/worker-*.js.map
 /android-anime-app
-/.kiro
+
+/.idea/
