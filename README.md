@@ -16,18 +16,18 @@ Experience ad-free anime streaming with seamless AniList integration for progres
 
 ## Features
 
-- 🚫 **Ad-Free Experience** - No interruptions, pure anime
-- ⚡ **Lightning Fast** - Optimized page loads and streaming
-- 📱 **PWA Support** - Install as an app on any device
-- 📐 **Fully Responsive** - Perfect experience on all screen sizes
-- 🎯 **Multi-Provider Support** - Multiple sources for reliability
-- 🎬 **Smart Recommendations** - Discover new anime
-- ▶️ **Advanced Player Features**
+- **Ad-Free Experience** - No interruptions, pure anime
+- **Lightning Fast** - Optimized page loads and streaming
+- **PWA Support** - Install as an app on any device
+- **Fully Responsive** - Perfect experience on all screen sizes
+- **Multi-Provider Support** - Multiple sources for reliability
+- **Smart Recommendations** - Discover new anime
+- **Advanced Player Features**
   - Auto-play next episode
   - Skip opening/ending buttons
   - Auto-play on load
   - Multiple quality options
-- 🔄 **AniList Integration** - Track your progress automatically
+- **AniList Integration** - Track your progress automatically
 
 ## Roadmap
 
@@ -50,7 +50,7 @@ Experience ad-free anime streaming with seamless AniList integration for progres
 
 ## Environment Variables
 
-##Kenjitsu-api
+## Kenjitsu-api
 Huge Thanks to Kenjitsu-api, it played a major role in making this site up, you can access it here - [Kenjitsu-api](https://github.com/middlegear/kenjitsu)
 
 Luna requires certain environment variables to function properly. Create a `.env.local` file in the root directory:
